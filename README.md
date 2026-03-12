@@ -16,7 +16,8 @@ branches will be added in future releases.
 
 ## CLI (Initial Stage)
 
-The CLI binary will be named `git-tk`. Example usage:
+The binary is named `git-tk`. Git discovers it as a plugin, so users invoke it
+as `git tk ...`. Direct invocation with `git-tk ...` also works. Example usage:
 
 ```bash
 git tk clone <repo-url>
