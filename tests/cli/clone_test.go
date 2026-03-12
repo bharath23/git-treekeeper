@@ -30,7 +30,7 @@ func TestCloneCommandWithRepo(t *testing.T) {
 	if !strings.Contains(out, "Default branch: main") {
 		t.Errorf("expected default branch info, got: %q", out)
 	}
-	if !strings.Contains(out, "Worktree path: main") {
+	if !strings.Contains(out, "Worktree path: /tmp/main") {
 		t.Errorf("expected worktree path info, got: %q", out)
 	}
 }

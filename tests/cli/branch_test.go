@@ -27,4 +27,7 @@ func TestBranchCommandWithBase(t *testing.T) {
 	if !strings.Contains(out, "Creating branch feature1 from develop") {
 		t.Errorf("unexpected output: %q", out)
 	}
+	if !strings.Contains(out, "Worktree path: /tmp/feature1") {
+		t.Errorf("expected output to contain worktree path, got: %q", out)
+	}
 }

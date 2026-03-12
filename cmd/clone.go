@@ -15,10 +15,13 @@ func NewCloneCmd() *cobra.Command {
 			}
 
 			repo := args[0]
-			defaultBranch := "main" // stub for now
+			defaultBranch, worktreePath, err := treekeeper.Clone(repo)
+			if err != nil {
+				return err
+			}
 			treekeeper.Info("Cloning repo %s", repo)
 			treekeeper.Info("Default branch: %s", defaultBranch)
-			treekeeper.Info("Worktree path: %s", defaultBranch)
+			treekeeper.Info("Worktree path: %s", worktreePath)
 			return nil
 		},
 	}

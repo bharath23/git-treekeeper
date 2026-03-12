@@ -15,13 +15,20 @@ func NewBranchCmd() *cobra.Command {
 			}
 
 			branch := args[0]
-			base := "main"
+			base := ""
 			if len(args) > 1 {
 				base = args[1]
 			}
+			if base == "" {
+				base = "main"
+			}
 
+			worktreePath, err := treekeeper.CreateBranch(branch, base)
+			if err != nil {
+				return err
+			}
 			treekeeper.Info("Creating branch %s from %s", branch, base)
-			// TODO: implement real git worktree creation
+			treekeeper.Info("Worktree path: %s", worktreePath)
 			return nil
 		},
 	}

@@ -15,7 +15,10 @@ func NewCheckoutCmd() *cobra.Command {
 			}
 
 			branch := args[0]
-			path := "/tmp/" + branch // stub worktree path
+			path, err := treekeeper.Checkout(branch)
+			if err != nil {
+				return err
+			}
 			treekeeper.Info("Checking out branch %s", branch)
 			treekeeper.Info("Worktree path: %s", path)
 			return nil
