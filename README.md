@@ -1,3 +1,5 @@
+![](https://github.com/bharath23/git-treekeeper/actions/workflows/test-suite.yml/badge.svg)
+
 # Git TreeKeeper
 
 **Git TreeKeeper** is a CLI tool to help manage Git branches and worktrees
