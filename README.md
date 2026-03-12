@@ -27,6 +27,39 @@ git tk branch <branch-name>
 git tk checkout <branch-name>
 ```
 
+## Build and Install
+
+```bash
+make build
+```
+
+The binary will be written to `build/git-tk` by default. You can override:
+
+- `BUILD_DIR` (output directory)
+- `BIN` (binary name)
+- `VERSION` (ldflags version)
+
+```bash
+make install
+```
+
+`make install` installs to the default Go install location. Override with
+`GOBIN` (preferred) or `GOPATH/bin`, and you can also override `VERSION`.
+
+Examples:
+
+```bash
+make build BUILD_DIR=dist BIN=git-tk
+make build VERSION=v0.1.0
+GOBIN="$HOME/.local/bin" make install
+```
+
+To run tests:
+
+```bash
+make test
+```
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) file.

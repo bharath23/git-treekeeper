@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var version = "dev"
+
 var RootCmd = &cobra.Command{
 	Use:   "git tk <command>",
 	Short: "Manage Git branches and worktrees",
@@ -20,7 +22,7 @@ large repositories and multiple branches simultaneously.`,
 	DisableSuggestions: true,
 	SilenceErrors:      true,
 	SilenceUsage:       true,
-	Version:            "0.1.0",
+	Version:            version,
 }
 
 func Execute() {
