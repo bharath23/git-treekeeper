@@ -118,6 +118,33 @@ CI runs:
 make test-ci
 ```
 
+## Install from Release
+
+1. Download the correct asset for your OS/arch from GitHub Releases:
+   `git-tk-<version>-<os>-<arch>` and its matching `.sha256`.
+2. Verify the checksum:
+
+```bash
+# macOS
+shasum -a 256 git-tk-<version>-<os>-<arch>
+cat git-tk-<version>-<os>-<arch>.sha256
+```
+
+```bash
+# Linux (or macOS with coreutils installed)
+sha256sum -c git-tk-<version>-<os>-<arch>.sha256
+```
+
+3. Make it executable and move it into your `PATH`:
+
+```bash
+chmod +x git-tk-<version>-<os>-<arch>
+mv git-tk-<version>-<os>-<arch> /usr/local/bin/git-tk
+```
+
+On macOS you may also need to allow execution in System Settings > Privacy & Security
+the first time you run it.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) file.
