@@ -23,4 +23,11 @@ jobs:
           go-version: ${{ matrix.go-version }}
 
       - name: Run Test Suite
-        run: make test
+        run: make test-ci
+
+      - name: Upload test log
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-suite-output.json
+          path: test.json

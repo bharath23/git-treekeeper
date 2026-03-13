@@ -60,6 +60,24 @@ To run tests:
 make test
 ```
 
+For verbose local output:
+
+```bash
+make test V=1
+```
+
+Short alias:
+
+```bash
+make test-v
+```
+
+CI runs:
+
+```bash
+make test-ci
+```
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) file.

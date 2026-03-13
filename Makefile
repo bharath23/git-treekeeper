@@ -1,9 +1,19 @@
+SHELL := /bin/bash
+
 VERSION ?= $(shell git describe --tags --dirty --always 2>/dev/null || echo dev)
 BUILD_DIR ?= build
 BIN ?= git-tk
 LDFLAGS := -X github.com/bharath23/git-treekeeper/cmd.version=$(VERSION)
+GOTESTFLAGS ?=
+VERBOSE ?=
+V ?=
+TESTJSON ?= test.json
 
-.PHONY: build install test
+.PHONY: build install test test-v test-verbose test-ci
+
+ifneq ($(strip $(VERBOSE)$(V)),)
+GOTESTFLAGS += -v
+endif
 
 build:
 	mkdir -p $(BUILD_DIR)
@@ -13,4 +23,13 @@ install:
 	go install -ldflags "$(LDFLAGS)" ./...
 
 test:
-	go test ./tests/... -v
+	go test ./... $(GOTESTFLAGS)
+
+test-v:
+	$(MAKE) test VERBOSE=1
+
+test-verbose:
+	$(MAKE) test VERBOSE=1
+
+test-ci:
+	set -o pipefail; go test ./... -json | tee $(TESTJSON)
