@@ -16,7 +16,7 @@ For now, Git TreeKeeper focuses on:
 More features like branch deletion, syncing, garbage collection, and stacked
 branches will be added in future releases.
 
-## CLI (Initial Stage)
+## CLI
 
 The binary is named `git-tk`. Git discovers it as a plugin, so users invoke it
 as `git tk ...`. Direct invocation with `git-tk ...` also works. Example usage:
@@ -25,6 +25,46 @@ as `git tk ...`. Direct invocation with `git-tk ...` also works. Example usage:
 git tk clone <repo-url>
 git tk branch <branch-name>
 git tk checkout <branch-name>
+```
+
+## Command Behavior
+
+### branch
+
+Creates a new branch and a worktree for it under `worktrees/<branch>`. If no
+base is provided, it uses the current branch, and falls back to the default
+branch when needed.
+
+```bash
+git tk branch <branch-name> [base]
+```
+
+### checkout
+
+Ensures a worktree exists for the branch and prints its path. If the branch
+does not exist, it creates it from the default branch.
+
+```bash
+git tk checkout <branch-name>
+```
+
+### clone
+
+Clones a repository into the default directory (same as `git clone`), creates a
+bare repo at `<base>/repo.git`, and adds a worktree for the default branch at
+`<base>/worktrees/<branch>`.
+
+```bash
+git tk clone <repo-url> [path]
+```
+
+## Example Usage
+
+```bash
+git tk clone https://github.com/user/repo.git
+cd repo/worktrees/main
+git tk branch feature-x
+git tk checkout feature-x
 ```
 
 ## Build and Install
