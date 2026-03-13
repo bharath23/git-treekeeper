@@ -6,4 +6,5 @@ var (
 	ErrMissingBranchName     = errors.New("branch name required")
 	ErrMissingCheckoutBranch = errors.New("checkout branch required")
 	ErrMissingRepoURL        = errors.New("repository URL required")
+	ErrTooManyArgs           = errors.New("too many arguments")
 )

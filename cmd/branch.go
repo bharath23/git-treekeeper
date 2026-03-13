@@ -13,22 +13,23 @@ func NewBranchCmd() *cobra.Command {
 			if len(args) < 1 {
 				return treekeeper.ErrMissingBranchName
 			}
+			if len(args) > 2 {
+				_ = cmd.Usage()
+				return treekeeper.ErrTooManyArgs
+			}
 
-			branch := args[0]
-			base := ""
+			branchName := args[0]
+			baseBranch := ""
 			if len(args) > 1 {
-				base = args[1]
-			}
-			if base == "" {
-				base = "main"
+				baseBranch = args[1]
 			}
 
-			worktreePath, err := treekeeper.CreateBranch(branch, base)
+			result, err := treekeeper.CreateBranch(branchName, baseBranch)
 			if err != nil {
 				return err
 			}
-			treekeeper.Info("Creating branch %s from %s", branch, base)
-			treekeeper.Info("Worktree path: %s", worktreePath)
+			treekeeper.Info("Creating branch %s from %s", branchName, result.Base)
+			treekeeper.Info("Worktree path: %s", result.WorktreePath)
 			return nil
 		},
 	}
