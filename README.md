@@ -58,6 +58,23 @@ bare repo at `<base>/repo.git`, and adds a worktree for the default branch at
 git tk clone <repo-url> [path]
 ```
 
+### doctor
+
+Reports worktree health. Each branch is marked as `clean`, `dirty`, or
+`merge/rebase in progress`.
+
+```bash
+git tk doctor
+```
+
+### list
+
+Lists all worktrees with their branch name and path, sorted by branch name.
+
+```bash
+git tk list
+```
+
 ## Example Usage
 
 ```bash
@@ -65,6 +82,8 @@ git tk clone https://github.com/user/repo.git
 cd repo/worktrees/main
 git tk branch feature-x
 git tk checkout feature-x
+git tk list
+git tk doctor
 ```
 
 ## Build and Install

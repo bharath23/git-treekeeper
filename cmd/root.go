@@ -71,6 +71,8 @@ func init() {
 	RootCmd.AddCommand(NewBranchCmd())
 	RootCmd.AddCommand(NewCheckoutCmd())
 	RootCmd.AddCommand(NewCloneCmd())
+	RootCmd.AddCommand(NewListCmd())
+	RootCmd.AddCommand(NewDoctorCmd())
 	cobra.AddTemplateFunc("displayUseLine", displayUseLine)
 	helpTemplate := `{{- with .Long}}{{- .}}
 
