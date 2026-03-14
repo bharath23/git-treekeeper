@@ -14,12 +14,12 @@ func Checkout(branch string) (string, error) {
 		return "", err
 	}
 
-	gitDir, err := git.CommonDir(workDir)
+	gitDir, baseDir, err := resolveGitDir(workDir)
 	if err != nil {
 		return "", err
 	}
 
-	worktreesRoot := worktreeRoot(filepath.Dir(gitDir))
+	worktreesRoot := worktreeRoot(baseDir)
 	if err := os.MkdirAll(worktreesRoot, 0o755); err != nil {
 		return "", err
 	}

@@ -20,7 +20,7 @@ func CreateBranch(branch, base string) (BranchResult, error) {
 		return BranchResult{}, err
 	}
 
-	gitDir, err := git.CommonDir(workDir)
+	gitDir, baseDir, err := resolveGitDir(workDir)
 	if err != nil {
 		return BranchResult{}, err
 	}
@@ -36,7 +36,7 @@ func CreateBranch(branch, base string) (BranchResult, error) {
 		}
 	}
 
-	worktreesRoot := worktreeRoot(filepath.Dir(gitDir))
+	worktreesRoot := worktreeRoot(baseDir)
 	if err := os.MkdirAll(worktreesRoot, 0o755); err != nil {
 		return BranchResult{}, err
 	}
