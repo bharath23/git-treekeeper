@@ -145,6 +145,12 @@ CI runs:
 make test-ci
 ```
 
+To run formatting and vet checks:
+
+```bash
+make check
+```
+
 ## Install from Release
 
 1. Download the correct asset for your OS/arch from GitHub Releases:

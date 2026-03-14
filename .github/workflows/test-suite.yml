@@ -23,7 +23,9 @@ jobs:
           go-version: ${{ matrix.go-version }}
 
       - name: Run Test Suite
-        run: make test-ci
+        run: |
+          make check
+          make test-ci
 
       - name: Upload test log
         if: failure()

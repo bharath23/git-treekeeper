@@ -9,7 +9,7 @@ VERBOSE ?=
 V ?=
 TESTJSON ?= test.json
 
-.PHONY: build install test test-v test-verbose test-ci
+.PHONY: build install check test test-v test-verbose test-ci
 
 ifneq ($(strip $(VERBOSE)$(V)),)
 GOTESTFLAGS += -v
@@ -21,6 +21,15 @@ build:
 
 install:
 	go install -ldflags "$(LDFLAGS)" ./...
+
+check:
+	@unformatted=$$(gofmt -l $$(git ls-files '*.go')); \
+	if [ -n "$$unformatted" ]; then \
+		echo "gofmt needed on:"; \
+		echo "$$unformatted"; \
+		exit 1; \
+	fi
+	go vet ./...
 
 test:
 	go test ./... $(GOTESTFLAGS)
