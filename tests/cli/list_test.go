@@ -6,15 +6,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bharath23/git-treekeeper/cmd"
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/bharath23/git-treekeeper/tests/utils"
 )
 
 func TestListCommandTooManyArgs(t *testing.T) {
+	root := newRootCmd()
 	errOut := utils.CaptureStderr(func() {
-		cmd.RootCmd.SetArgs([]string{"list", "extra"})
-		err := cmd.RootCmd.Execute()
+		root.SetArgs([]string{"list", "extra"})
+		err := root.Execute()
 		if !errors.Is(err, treekeeper.ErrTooManyArgs) {
 			t.Errorf("expected ErrTooManyArgs, got %v", err)
 		}
@@ -35,10 +35,11 @@ func TestListCommandOutput(t *testing.T) {
 
 	expectedPath := utils.RealPath(t, filepath.Join(destPath, "worktrees", "main"))
 
+	root := newRootCmd()
 	restore := utils.Chdir(t, worktreePath)
 	out := utils.CaptureStdout(func() {
-		cmd.RootCmd.SetArgs([]string{"list"})
-		_ = cmd.RootCmd.Execute()
+		root.SetArgs([]string{"list"})
+		_ = root.Execute()
 	})
 	restore()
 
@@ -54,8 +55,8 @@ func TestListCommandOutput(t *testing.T) {
 
 	restoreBase := utils.Chdir(t, destPath)
 	out = utils.CaptureStdout(func() {
-		cmd.RootCmd.SetArgs([]string{"list"})
-		_ = cmd.RootCmd.Execute()
+		root.SetArgs([]string{"list"})
+		_ = root.Execute()
 	})
 	restoreBase()
 

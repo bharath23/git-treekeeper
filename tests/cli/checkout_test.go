@@ -7,23 +7,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bharath23/git-treekeeper/cmd"
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/bharath23/git-treekeeper/tests/utils"
 )
 
 func TestCheckoutCommandMissingBranchName(t *testing.T) {
-	cmd.RootCmd.SetArgs([]string{"checkout"})
-	err := cmd.RootCmd.Execute()
+	root := newRootCmd()
+	root.SetArgs([]string{"checkout"})
+	err := root.Execute()
 	if !errors.Is(err, treekeeper.ErrMissingCheckoutBranch) {
 		t.Errorf("expected ErrMissingCheckoutBranch, got %v", err)
 	}
 }
 
 func TestCheckoutCommandTooManyArgs(t *testing.T) {
+	root := newRootCmd()
 	errOut := utils.CaptureStderr(func() {
-		cmd.RootCmd.SetArgs([]string{"checkout", "one", "two"})
-		err := cmd.RootCmd.Execute()
+		root.SetArgs([]string{"checkout", "one", "two"})
+		err := root.Execute()
 		if !errors.Is(err, treekeeper.ErrTooManyArgs) {
 			t.Errorf("expected ErrTooManyArgs, got %v", err)
 		}
@@ -49,9 +50,10 @@ func TestCheckoutCommandWithBranch(t *testing.T) {
 	restoreWorktree := utils.Chdir(t, worktreePath)
 	defer restoreWorktree()
 
+	root := newRootCmd()
 	out := utils.CaptureStdout(func() {
-		cmd.RootCmd.SetArgs([]string{"checkout", "feature1"})
-		_ = cmd.RootCmd.Execute()
+		root.SetArgs([]string{"checkout", "feature1"})
+		_ = root.Execute()
 	})
 
 	if !strings.Contains(out, "Checking out branch feature1") {

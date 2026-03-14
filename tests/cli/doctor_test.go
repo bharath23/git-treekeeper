@@ -7,15 +7,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bharath23/git-treekeeper/cmd"
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/bharath23/git-treekeeper/tests/utils"
 )
 
 func TestDoctorCommandTooManyArgs(t *testing.T) {
+	root := newRootCmd()
 	errOut := utils.CaptureStderr(func() {
-		cmd.RootCmd.SetArgs([]string{"doctor", "extra"})
-		err := cmd.RootCmd.Execute()
+		root.SetArgs([]string{"doctor", "extra"})
+		err := root.Execute()
 		if !errors.Is(err, treekeeper.ErrTooManyArgs) {
 			t.Errorf("expected ErrTooManyArgs, got %v", err)
 		}
@@ -41,9 +41,10 @@ func TestDoctorCommandDirty(t *testing.T) {
 		t.Fatalf("write file: %v", err)
 	}
 
+	root := newRootCmd()
 	out := utils.CaptureStdout(func() {
-		cmd.RootCmd.SetArgs([]string{"doctor"})
-		_ = cmd.RootCmd.Execute()
+		root.SetArgs([]string{"doctor"})
+		_ = root.Execute()
 	})
 
 	if !strings.Contains(out, "branch") || !strings.Contains(out, "state") {

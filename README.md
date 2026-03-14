@@ -12,9 +12,12 @@ For now, Git TreeKeeper focuses on:
 - Cloning repositories
 - Creating new branches and worktrees
 - Checking out branches
+- Deleting branches and worktrees
+- Listing worktrees
+- Checking worktree health
 
-More features like branch deletion, syncing, garbage collection, and stacked
-branches will be added in future releases.
+More features like syncing, garbage collection, and stacked branches will be
+added in future releases.
 
 ## CLI
 
@@ -34,6 +37,11 @@ git tk checkout <branch-name>
 Creates a new branch and a worktree for it under `worktrees/<branch>`. If no
 base is provided, it uses the current branch, and falls back to the default
 branch when needed.
+
+Deletion:
+- `-d, --delete` deletes the branch and its worktree if it is merged.
+- `-D, --force` deletes even if unmerged (still refuses dirty/in-progress).
+- `--remote` also deletes the remote branch from `origin`.
 
 ```bash
 git tk branch <branch-name> [base]

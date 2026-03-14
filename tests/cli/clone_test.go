@@ -6,23 +6,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bharath23/git-treekeeper/cmd"
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/bharath23/git-treekeeper/tests/utils"
 )
 
 func TestCloneCommandMissingRepoURL(t *testing.T) {
-	cmd.RootCmd.SetArgs([]string{"clone"})
-	err := cmd.RootCmd.Execute()
+	root := newRootCmd()
+	root.SetArgs([]string{"clone"})
+	err := root.Execute()
 	if !errors.Is(err, treekeeper.ErrMissingRepoURL) {
 		t.Errorf("expected ErrMissingRepoURL, got %v", err)
 	}
 }
 
 func TestCloneCommandTooManyArgs(t *testing.T) {
+	root := newRootCmd()
 	errOut := utils.CaptureStderr(func() {
-		cmd.RootCmd.SetArgs([]string{"clone", "repo", "path", "extra"})
-		err := cmd.RootCmd.Execute()
+		root.SetArgs([]string{"clone", "repo", "path", "extra"})
+		err := root.Execute()
 		if !errors.Is(err, treekeeper.ErrTooManyArgs) {
 			t.Errorf("expected ErrTooManyArgs, got %v", err)
 		}
@@ -38,9 +39,10 @@ func TestCloneCommandWithRepo(t *testing.T) {
 	restore := utils.Chdir(t, destRoot)
 	defer restore()
 
+	root := newRootCmd()
 	out := utils.CaptureStdout(func() {
-		cmd.RootCmd.SetArgs([]string{"clone", srcRepo})
-		_ = cmd.RootCmd.Execute()
+		root.SetArgs([]string{"clone", srcRepo})
+		_ = root.Execute()
 	})
 
 	if !strings.Contains(out, "Cloning repo "+srcRepo) {

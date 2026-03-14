@@ -62,6 +62,30 @@ func worktreeState(worktreePath string) (string, error) {
 	return "clean", nil
 }
 
+func inProgress(worktreePath string) (bool, error) {
+	gitDir, err := git.ResolveGitDir(worktreePath)
+	if err != nil {
+		return false, err
+	}
+
+	if exists(filepath.Join(gitDir, "rebase-apply")) || exists(filepath.Join(gitDir, "rebase-merge")) {
+		return true, nil
+	}
+	if exists(filepath.Join(gitDir, "MERGE_HEAD")) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func isDirty(worktreePath string) (bool, error) {
+	status, err := git.StatusPorcelain(worktreePath)
+	if err != nil {
+		return false, err
+	}
+	return status != "", nil
+}
+
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil

@@ -7,23 +7,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bharath23/git-treekeeper/cmd"
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/bharath23/git-treekeeper/tests/utils"
 )
 
 func TestBranchCommandMissingBranchName(t *testing.T) {
-	cmd.RootCmd.SetArgs([]string{"branch"})
-	err := cmd.RootCmd.Execute()
+	root := newRootCmd()
+	root.SetArgs([]string{"branch"})
+	err := root.Execute()
 	if !errors.Is(err, treekeeper.ErrMissingBranchName) {
 		t.Errorf("expected ErrMissingBranchName, got %v", err)
 	}
 }
 
 func TestBranchCommandTooManyArgs(t *testing.T) {
+	root := newRootCmd()
 	errOut := utils.CaptureStderr(func() {
-		cmd.RootCmd.SetArgs([]string{"branch", "one", "two", "three"})
-		err := cmd.RootCmd.Execute()
+		root.SetArgs([]string{"branch", "one", "two", "three"})
+		err := root.Execute()
 		if !errors.Is(err, treekeeper.ErrTooManyArgs) {
 			t.Errorf("expected ErrTooManyArgs, got %v", err)
 		}
@@ -49,9 +50,10 @@ func TestBranchCommandWithBase(t *testing.T) {
 	restoreWorktree := utils.Chdir(t, worktreePath)
 	defer restoreWorktree()
 
+	root := newRootCmd()
 	out := utils.CaptureStdout(func() {
-		cmd.RootCmd.SetArgs([]string{"branch", "feature1"})
-		cmd.RootCmd.Execute()
+		root.SetArgs([]string{"branch", "feature1"})
+		_ = root.Execute()
 	})
 
 	if !strings.Contains(out, "Creating branch feature1 from main") {

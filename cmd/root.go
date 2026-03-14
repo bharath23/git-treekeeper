@@ -5,27 +5,34 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
 
 var version = "dev"
 
-var RootCmd = &cobra.Command{
-	Use:   "git-tk <command>",
-	Short: "Manage Git branches and worktrees efficiently.",
-	Long: `Git TreeKeeper
+var templateOnce sync.Once
 
-Manage Git branches and worktrees efficiently.
+const helpTemplate = `{{- with .Long}}{{- .}}
 
-Git TreeKeeper automatically creates and manages worktrees when
-creating or switching branches, making it easier to work with
-large repositories and multiple branches simultaneously.`,
-	DisableSuggestions: true,
-	SilenceErrors:      true,
-	SilenceUsage:       true,
-	Version:            version,
-}
+{{end -}}Usage:
+  {{displayUseLine .}}
+
+{{- if .HasAvailableSubCommands}}
+
+Commands:
+{{- range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{- end}}
+{{- if .HasAvailableLocalFlags}}
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{- end}}
+{{- if .HasAvailableInheritedFlags}}
+
+Global Flags:
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{- end}}
+`
 
 func displayRootName() string {
 	base := filepath.Base(os.Args[0])
@@ -66,33 +73,36 @@ func Execute() {
 	}
 }
 
-func init() {
-	RootCmd.CompletionOptions.DisableDefaultCmd = true
-	RootCmd.AddCommand(NewBranchCmd())
-	RootCmd.AddCommand(NewCheckoutCmd())
-	RootCmd.AddCommand(NewCloneCmd())
-	RootCmd.AddCommand(NewListCmd())
-	RootCmd.AddCommand(NewDoctorCmd())
-	cobra.AddTemplateFunc("displayUseLine", displayUseLine)
-	helpTemplate := `{{- with .Long}}{{- .}}
+func NewRootCmd() *cobra.Command {
+	templateOnce.Do(func() {
+		cobra.AddTemplateFunc("displayUseLine", displayUseLine)
+	})
 
-{{end -}}Usage:
-  {{displayUseLine .}}
+	root := &cobra.Command{
+		Use:   "git-tk <command>",
+		Short: "Manage Git branches and worktrees efficiently.",
+		Long: `Git TreeKeeper
 
-{{- if .HasAvailableSubCommands}}
+Manage Git branches and worktrees efficiently.
 
-Commands:
-{{- range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
-  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{- end}}
-{{- if .HasAvailableLocalFlags}}
+Git TreeKeeper automatically creates and manages worktrees when
+creating or switching branches, making it easier to work with
+large repositories and multiple branches simultaneously.`,
+		DisableSuggestions: true,
+		SilenceErrors:      true,
+		SilenceUsage:       true,
+		Version:            version,
+	}
 
-Flags:
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{- end}}
-{{- if .HasAvailableInheritedFlags}}
-
-Global Flags:
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{- end}}
-`
-	RootCmd.SetHelpTemplate(helpTemplate)
-	RootCmd.SetUsageTemplate(helpTemplate)
+	root.CompletionOptions.DisableDefaultCmd = true
+	root.AddCommand(NewBranchCmd())
+	root.AddCommand(NewCheckoutCmd())
+	root.AddCommand(NewCloneCmd())
+	root.AddCommand(NewListCmd())
+	root.AddCommand(NewDoctorCmd())
+	root.SetHelpTemplate(helpTemplate)
+	root.SetUsageTemplate(helpTemplate)
+	return root
 }
+
+var RootCmd = NewRootCmd()
