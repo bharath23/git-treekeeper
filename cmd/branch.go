@@ -1,6 +1,11 @@
 package cmd
 
 import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/spf13/cobra"
 )
@@ -9,6 +14,7 @@ func NewBranchCmd() *cobra.Command {
 	var deleteBranch bool
 	var deleteRemote bool
 	var forceDelete bool
+	var assumeYes bool
 
 	cmd := &cobra.Command{
 		Use:   "branch <name> [base]",
@@ -31,6 +37,9 @@ func NewBranchCmd() *cobra.Command {
 
 			branchName := args[0]
 			if deleteBranch {
+				if err := confirmDelete(branchName, forceDelete, deleteRemote, assumeYes); err != nil {
+					return err
+				}
 				result, err := treekeeper.DeleteBranch(branchName, deleteRemote, forceDelete)
 				if err != nil {
 					return err
@@ -62,5 +71,36 @@ func NewBranchCmd() *cobra.Command {
 	cmd.Flags().BoolVarP(&deleteBranch, "delete", "d", false, "Delete branch and worktree")
 	cmd.Flags().BoolVarP(&forceDelete, "force", "D", false, "Force delete branch even if unmerged")
 	cmd.Flags().BoolVar(&deleteRemote, "remote", false, "Delete remote branch")
+	cmd.Flags().BoolVar(&assumeYes, "yes", false, "Skip delete confirmation")
 	return cmd
+}
+
+func confirmDelete(branchName string, forceDelete bool, deleteRemote bool, assumeYes bool) error {
+	if assumeYes || (!forceDelete && !deleteRemote) {
+		return nil
+	}
+
+	flags := []string{}
+	if forceDelete {
+		flags = append(flags, "force")
+	}
+	if deleteRemote {
+		flags = append(flags, "remote")
+	}
+
+	note := ""
+	if len(flags) > 0 {
+		note = " (" + strings.Join(flags, ", ") + ")"
+	}
+	fmt.Fprintf(os.Stderr, "Confirm delete of branch %s%s [y/N]: ", branchName, note)
+	reader := bufio.NewReader(os.Stdin)
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	resp := strings.ToLower(strings.TrimSpace(line))
+	if resp == "y" || resp == "yes" {
+		return nil
+	}
+	return treekeeper.ErrDeleteAborted
 }

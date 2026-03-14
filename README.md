@@ -41,7 +41,9 @@ branch when needed.
 Deletion:
 - `-d, --delete` deletes the branch and its worktree if it is merged.
 - `-D, --force` deletes even if unmerged (still refuses dirty/in-progress).
-- `--remote` also deletes the remote branch from `origin`.
+- `--remote` also deletes the remote branch from `origin` (errors if missing).
+- `--yes` skips confirmation for destructive deletes (`-D` or `--remote`).
+- Deletion is refused if run inside the target branch worktree.
 
 ```bash
 git tk branch <branch-name> [base]

@@ -63,3 +63,7 @@ func CurrentBranch(workDir string) (string, error) {
 	}
 	return out, nil
 }
+
+func TopLevel(workDir string) (string, error) {
+	return RunInDir(workDir, "rev-parse", "--show-toplevel")
+}

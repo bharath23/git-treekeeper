@@ -3,6 +3,7 @@ package treekeeper
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/bharath23/git-treekeeper/internal/git"
 )
@@ -34,9 +35,22 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 		return DeleteResult{}, err
 	}
 
+	branchExists, err := git.RefExists(gitDir, "refs/heads/"+branchName)
+	if err != nil {
+		return DeleteResult{}, err
+	}
+	if !branchExists {
+		return DeleteResult{}, ErrBranchNotFound
+	}
+
 	worktreePath, ok := worktreeForBranch(gitDir, branchName)
 
 	if ok {
+		currentRoot, err := git.TopLevel(workDir)
+		if err == nil && samePath(currentRoot, worktreePath) {
+			return DeleteResult{}, ErrBranchCheckedOut
+		}
+
 		inProgress, err := inProgress(worktreePath)
 		if err != nil {
 			return DeleteResult{}, err
@@ -69,6 +83,23 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 		if !merged {
 			return DeleteResult{}, ErrBranchNotMerged
 		}
+
+		if deleteRemote {
+			remoteRef := "refs/remotes/origin/" + baseBranch
+			remoteExists, err := git.RefExists(gitDir, remoteRef)
+			if err != nil {
+				return DeleteResult{}, err
+			}
+			if remoteExists {
+				mergedRemote, err := git.IsMerged(gitDir, branchName, "origin/"+baseBranch)
+				if err != nil {
+					return DeleteResult{}, err
+				}
+				if !mergedRemote {
+					return DeleteResult{}, ErrBranchNotMerged
+				}
+			}
+		}
 	}
 
 	if ok {
@@ -94,6 +125,13 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 	}
 
 	if deleteRemote {
+		remoteExists, err := git.RemoteBranchExists(gitDir, result.RemoteName, branchName)
+		if err != nil {
+			return DeleteResult{}, err
+		}
+		if !remoteExists {
+			return DeleteResult{}, ErrRemoteBranchNotFound
+		}
 		if _, err := git.Run("--git-dir", gitDir, "push", "origin", "--delete", branchName); err != nil {
 			return DeleteResult{}, fmt.Errorf("delete remote branch: %w", err)
 		}
@@ -114,4 +152,14 @@ func worktreeForBranch(gitDir, branchName string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func samePath(a, b string) bool {
+	if resolved, err := filepath.EvalSymlinks(a); err == nil {
+		a = resolved
+	}
+	if resolved, err := filepath.EvalSymlinks(b); err == nil {
+		b = resolved
+	}
+	return filepath.Clean(a) == filepath.Clean(b)
 }
