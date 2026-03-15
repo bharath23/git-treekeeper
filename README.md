@@ -16,6 +16,7 @@ For now, Git TreeKeeper focuses on:
 - Listing worktrees
 - Checking worktree health
 - Pruning stale worktrees
+- Syncing branches with remotes
 
 More features like syncing, garbage collection, and stacked branches will be
 added in future releases.
@@ -108,6 +109,28 @@ Options:
 - `--dry-run` prints what would be pruned without making changes.
 - `--merged-branches` also deletes merged branches that have no worktree.
 
+### sync
+
+Syncs a branch using `git fetch` plus `--ff-only` fast-forward, matching a
+read-only main workflow.
+
+```bash
+git tk sync
+git tk sync --default
+git tk sync --branch feature-x
+```
+
+Options:
+- `--default` syncs the default branch worktree.
+- `--branch <name>` syncs the specified branch worktree.
+- `--remote <name>` fetches from a specific remote.
+- `--add-upstream <url>` adds an upstream remote (default name: `upstream`).
+- `--set-upstream` sets the branch upstream to `<upstream>/<branch>` and sets
+  push remote to `origin`.
+- `--upstream <name>` sets the upstream remote name (default `upstream`).
+- `--origin <name>` sets the origin remote name for push defaults.
+- `--dry-run` prints what would be synced without making changes.
+
 ### Global Flags
 
 - `--quiet` suppresses informational output.
@@ -123,6 +146,7 @@ git tk checkout feature-x
 git tk list
 git tk doctor
 git tk prune
+git tk sync --default
 ```
 
 ## Build and Install

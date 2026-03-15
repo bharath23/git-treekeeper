@@ -55,3 +55,36 @@ func LocalBranches(gitDir string) ([]string, error) {
 	}
 	return branches, nil
 }
+
+func BranchUpstream(gitDir, branchName string) (string, error) {
+	out, err := Run("--git-dir", gitDir, "for-each-ref", "--format=%(upstream:short)", "refs/heads/"+branchName)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(out), nil
+}
+
+func SetBranchUpstream(gitDir, branchName, upstreamRef string) error {
+	_, err := Run("--git-dir", gitDir, "branch", "--set-upstream-to="+upstreamRef, branchName)
+	return err
+}
+
+func SetBranchPushRemote(gitDir, branchName, remoteName string) error {
+	_, err := Run("--git-dir", gitDir, "config", "branch."+branchName+".pushRemote", remoteName)
+	return err
+}
+
+func BranchPushRemote(gitDir, branchName string) (string, error) {
+	cmd := exec.Command("git", "--git-dir", gitDir, "config", "--get", "branch."+branchName+".pushRemote")
+	out, err := cmd.Output()
+	if err == nil {
+		return strings.TrimSpace(string(out)), nil
+	}
+
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		return "", nil
+	}
+
+	return "", err
+}

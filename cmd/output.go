@@ -28,6 +28,7 @@ var renderers = map[treekeeper.ResponseKind]RenderFunc{
 	treekeeper.ResponseList:         renderList,
 	treekeeper.ResponseDoctor:       renderDoctor,
 	treekeeper.ResponsePrune:        renderPrune,
+	treekeeper.ResponseSync:         renderSync,
 }
 
 func RenderResponse(out io.Writer, format OutputFormat, response treekeeper.Response) error {
@@ -165,6 +166,50 @@ func renderPrune(out io.Writer, format OutputFormat, response treekeeper.Respons
 	}
 	for _, branch := range result.SkippedBranches {
 		treekeeper.Verbose("Skipped branch %s: %s", branch.Branch, branch.Reason)
+	}
+	return nil
+}
+
+func renderSync(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.Sync == nil {
+		return fmt.Errorf("missing sync payload")
+	}
+	result := *response.Sync
+
+	if result.AddedUpstream {
+		if result.DryRun {
+			treekeeper.Info("Would add upstream remote %s (%s)", result.UpstreamName, result.UpstreamURL)
+		} else {
+			treekeeper.Info("Added upstream remote %s (%s)", result.UpstreamName, result.UpstreamURL)
+		}
+	}
+	if result.SetUpstream {
+		if result.DryRun {
+			treekeeper.Info("Would set upstream for %s to %s/%s", result.Branch, result.UpstreamName, result.Branch)
+			if result.PushRemote != "" {
+				treekeeper.Info("Would set push remote for %s to %s", result.Branch, result.PushRemote)
+			}
+		} else {
+			treekeeper.Info("Set upstream for %s to %s/%s", result.Branch, result.UpstreamName, result.Branch)
+			if result.PushRemote != "" {
+				treekeeper.Info("Set push remote for %s to %s", result.Branch, result.PushRemote)
+			}
+		}
+	}
+
+	treekeeper.Info("Syncing %s from %s/%s", result.Branch, result.Remote, result.RemoteBranch)
+
+	if result.DryRun {
+		treekeeper.Info("Would fetch %s", result.Remote)
+		treekeeper.Info("Would fast-forward %s from %s/%s", result.Branch, result.Remote, result.RemoteBranch)
+		return nil
+	}
+
+	for _, line := range result.FetchOutput {
+		treekeeper.Info("%s", line)
+	}
+	for _, line := range result.MergeOutput {
+		treekeeper.Info("%s", line)
 	}
 	return nil
 }

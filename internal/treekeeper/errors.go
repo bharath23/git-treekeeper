@@ -17,4 +17,8 @@ var (
 	ErrBranchNotFound        = errors.New("branch not found")
 	ErrRemoteBranchNotFound  = errors.New("remote branch not found")
 	ErrOutputFormatConflict  = errors.New("cannot use --porcelain and --json together")
+	ErrSyncBranchConflict    = errors.New("cannot use --default and --branch together")
+	ErrRemoteNotFound        = errors.New("remote not found")
+	ErrOriginRemoteMissing   = errors.New("origin remote not found")
+	ErrRemoteURLMismatch     = errors.New("remote exists with a different URL")
 )

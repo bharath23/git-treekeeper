@@ -222,6 +222,23 @@ echo "$output"
 assert_contains "$output" "Pruned branch: merged-branch"
 
 echo
+echo "== Sync default from upstream =="
+git clone --bare "$tmp/src/repo.git" "$tmp/upstream.git" >/dev/null
+output="$("$BIN" sync --default --add-upstream "$tmp/upstream.git" --set-upstream 2>&1)"
+echo "$output"
+git clone "$tmp/upstream.git" "$tmp/upstream-work" >/dev/null
+git -C "$tmp/upstream-work" config user.name git-tk
+git -C "$tmp/upstream-work" config user.email git-tk@example.com
+echo "upstream change" >> "$tmp/upstream-work/README.md"
+git -C "$tmp/upstream-work" add README.md
+git -C "$tmp/upstream-work" commit -m "upstream change"
+git -C "$tmp/upstream-work" push origin main >/dev/null
+rm -rf "$tmp/upstream-work"
+output="$("$BIN" sync --default 2>&1)"
+echo "$output"
+assert_contains "$output" "Syncing main from upstream/main"
+
+echo
 echo "== Branch delete (unmerged) =="
 output="$("$BIN" branch feature-del 2>&1)"
 echo "$output"
