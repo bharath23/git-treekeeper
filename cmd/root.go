@@ -104,6 +104,7 @@ large repositories and multiple branches simultaneously.`,
 	root.AddCommand(NewCloneCmd())
 	root.AddCommand(NewListCmd())
 	root.AddCommand(NewDoctorCmd())
+	root.AddCommand(NewPruneCmd())
 	root.PersistentFlags().BoolVar(&quiet, "quiet", false, "Suppress informational output")
 	root.PersistentFlags().BoolVar(&verbose, "verbose", false, "Verbose output")
 	root.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {

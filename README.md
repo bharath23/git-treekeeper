@@ -15,6 +15,7 @@ For now, Git TreeKeeper focuses on:
 - Deleting branches and worktrees
 - Listing worktrees
 - Checking worktree health
+- Pruning stale worktrees
 
 More features like syncing, garbage collection, and stacked branches will be
 added in future releases.
@@ -93,6 +94,20 @@ Options:
 - `--porcelain` prints tab-separated rows with no header.
 - `--json` prints a JSON array of `{branch,path}` objects.
 
+### prune
+
+Prunes worktree entries whose directories no longer exist. By default it only
+removes stale worktrees; use `--merged-branches` to also remove merged branches
+that no longer have a worktree.
+
+```bash
+git tk prune
+```
+
+Options:
+- `--dry-run` prints what would be pruned without making changes.
+- `--merged-branches` also deletes merged branches that have no worktree.
+
 ### Global Flags
 
 - `--quiet` suppresses informational output.
@@ -107,6 +122,7 @@ git tk branch feature-x
 git tk checkout feature-x
 git tk list
 git tk doctor
+git tk prune
 ```
 
 ## Build and Install

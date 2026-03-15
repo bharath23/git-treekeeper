@@ -3,6 +3,7 @@ package git
 import (
 	"errors"
 	"os/exec"
+	"strings"
 )
 
 func IsMerged(gitDir, branchName, baseBranch string) (bool, error) {
@@ -33,4 +34,24 @@ func RefExists(gitDir, ref string) (bool, error) {
 	}
 
 	return false, err
+}
+
+func LocalBranches(gitDir string) ([]string, error) {
+	out, err := Run("--git-dir", gitDir, "for-each-ref", "--format=%(refname:short)", "refs/heads")
+	if err != nil {
+		return nil, err
+	}
+	if out == "" {
+		return nil, nil
+	}
+	lines := strings.Split(out, "\n")
+	branches := make([]string, 0, len(lines))
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		branches = append(branches, line)
+	}
+	return branches, nil
 }

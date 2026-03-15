@@ -7,8 +7,12 @@ import (
 )
 
 type Worktree struct {
-	Path   string
-	Branch string
+	Path           string
+	Branch         string
+	Locked         bool
+	LockedReason   string
+	Prunable       bool
+	PrunableReason string
 }
 
 func AddWorktreeExisting(gitDir, worktreePath, branchName string) error {
@@ -48,6 +52,17 @@ func WorktreeList(gitDir string) ([]Worktree, error) {
 		if strings.HasPrefix(line, "branch ") {
 			ref := strings.TrimPrefix(line, "branch ")
 			current.Branch = strings.TrimPrefix(ref, "refs/heads/")
+			continue
+		}
+		if strings.HasPrefix(line, "locked") {
+			current.Locked = true
+			current.LockedReason = strings.TrimSpace(strings.TrimPrefix(line, "locked"))
+			continue
+		}
+		if strings.HasPrefix(line, "prunable") {
+			current.Prunable = true
+			current.PrunableReason = strings.TrimSpace(strings.TrimPrefix(line, "prunable"))
+			continue
 		}
 	}
 

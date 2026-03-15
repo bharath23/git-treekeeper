@@ -27,6 +27,7 @@ var renderers = map[treekeeper.ResponseKind]RenderFunc{
 	treekeeper.ResponseClone:        renderClone,
 	treekeeper.ResponseList:         renderList,
 	treekeeper.ResponseDoctor:       renderDoctor,
+	treekeeper.ResponsePrune:        renderPrune,
 }
 
 func RenderResponse(out io.Writer, format OutputFormat, response treekeeper.Response) error {
@@ -137,5 +138,33 @@ func renderCheckout(out io.Writer, format OutputFormat, response treekeeper.Resp
 	result := *response.Checkout
 	treekeeper.Info("Checking out branch %s", result.Branch)
 	treekeeper.Info("Worktree path: %s", result.WorktreePath)
+	return nil
+}
+
+func renderPrune(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.Prune == nil {
+		return fmt.Errorf("missing prune payload")
+	}
+	result := *response.Prune
+	for _, wt := range result.PrunedWorktrees {
+		if result.DryRun {
+			treekeeper.Info("Would prune worktree: %s", wt.Path)
+		} else {
+			treekeeper.Info("Pruned worktree: %s", wt.Path)
+		}
+	}
+	for _, branch := range result.PrunedBranches {
+		if result.DryRun {
+			treekeeper.Info("Would prune branch: %s", branch.Branch)
+		} else {
+			treekeeper.Info("Pruned branch: %s", branch.Branch)
+		}
+	}
+	for _, wt := range result.SkippedWorktrees {
+		treekeeper.Verbose("Skipped worktree %s: %s", wt.Path, wt.Reason)
+	}
+	for _, branch := range result.SkippedBranches {
+		treekeeper.Verbose("Skipped branch %s: %s", branch.Branch, branch.Reason)
+	}
 	return nil
 }

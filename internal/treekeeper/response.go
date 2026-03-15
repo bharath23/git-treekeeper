@@ -9,6 +9,7 @@ const (
 	ResponseClone
 	ResponseList
 	ResponseDoctor
+	ResponsePrune
 )
 
 type Response struct {
@@ -19,6 +20,7 @@ type Response struct {
 	Clone        *CloneOutput
 	Worktrees    []WorktreeInfo
 	Doctor       []DoctorInfo
+	Prune        *PruneResult
 }
 
 type BranchCreateOutput struct {
@@ -43,4 +45,32 @@ type CloneOutput struct {
 type CheckoutOutput struct {
 	Branch       string
 	WorktreePath string
+}
+
+type PruneResult struct {
+	DryRun           bool
+	PrunedWorktrees  []PrunedWorktree
+	PrunedBranches   []PrunedBranch
+	SkippedWorktrees []SkippedWorktree
+	SkippedBranches  []SkippedBranch
+}
+
+type PrunedWorktree struct {
+	Branch string
+	Path   string
+}
+
+type SkippedWorktree struct {
+	Branch string
+	Path   string
+	Reason string
+}
+
+type PrunedBranch struct {
+	Branch string
+}
+
+type SkippedBranch struct {
+	Branch string
+	Reason string
 }
