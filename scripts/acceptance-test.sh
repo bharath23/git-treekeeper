@@ -148,6 +148,14 @@ echo "$output"
 assert_contains_path "$output" "$tmp/src/worktrees/feature-y"
 
 echo
+echo "== Checkout (path-only) =="
+path="$("$BIN" checkout --path-only feature-path 2>&1)"
+echo "$path"
+assert_contains_path "$path" "$tmp/src/worktrees/feature-path"
+cd "$path"
+cd "$tmp/src/worktrees/main"
+
+echo
 echo "== List worktrees =="
 output="$("$BIN" list 2>&1)"
 echo "$output"

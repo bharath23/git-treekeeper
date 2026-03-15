@@ -16,6 +16,7 @@ const (
 	FormatHuman OutputFormat = iota
 	FormatPorcelain
 	FormatJSON
+	FormatPathOnly
 )
 
 type RenderFunc func(out io.Writer, format OutputFormat, response treekeeper.Response) error
@@ -101,6 +102,10 @@ func renderBranchCreate(out io.Writer, format OutputFormat, response treekeeper.
 		return fmt.Errorf("missing branch create payload")
 	}
 	result := *response.BranchCreate
+	if format == FormatPathOnly {
+		fmt.Fprintln(out, result.WorktreePath)
+		return nil
+	}
 	treekeeper.Info("Creating branch %s from %s", result.Branch, result.Base)
 	treekeeper.Info("Worktree path: %s", result.WorktreePath)
 	return nil
@@ -126,6 +131,10 @@ func renderClone(out io.Writer, format OutputFormat, response treekeeper.Respons
 		return fmt.Errorf("missing clone payload")
 	}
 	result := *response.Clone
+	if format == FormatPathOnly {
+		fmt.Fprintln(out, result.WorktreePath)
+		return nil
+	}
 	treekeeper.Info("Cloning repo %s", result.RepoURL)
 	treekeeper.Info("Default branch: %s", result.DefaultBranch)
 	treekeeper.Info("Worktree path: %s", result.WorktreePath)
@@ -137,6 +146,10 @@ func renderCheckout(out io.Writer, format OutputFormat, response treekeeper.Resp
 		return fmt.Errorf("missing checkout payload")
 	}
 	result := *response.Checkout
+	if format == FormatPathOnly {
+		fmt.Fprintln(out, result.WorktreePath)
+		return nil
+	}
 	treekeeper.Info("Checking out branch %s", result.Branch)
 	treekeeper.Info("Worktree path: %s", result.WorktreePath)
 	return nil

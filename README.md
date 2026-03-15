@@ -51,6 +51,9 @@ Deletion:
 git tk branch <branch-name> [base]
 ```
 
+Options:
+- `--path-only` prints only the worktree path.
+
 ### checkout
 
 Ensures a worktree exists for the branch and prints its path. If the branch
@@ -59,6 +62,9 @@ does not exist, it creates it from the default branch.
 ```bash
 git tk checkout <branch-name>
 ```
+
+Options:
+- `--path-only` prints only the worktree path.
 
 ### clone
 
@@ -69,6 +75,9 @@ bare repo at `<base>/repo.git`, and adds a worktree for the default branch at
 ```bash
 git tk clone <repo-url> [path]
 ```
+
+Options:
+- `--path-only` prints only the worktree path.
 
 ### doctor
 
@@ -135,6 +144,22 @@ Options:
 
 - `--quiet` suppresses informational output.
 - `--verbose` enables verbose output (reserved for future diagnostics).
+
+## Shell Integration
+
+Use `--path-only` to auto-`cd` into the returned worktree path. Example for bash/zsh:
+
+```bash
+gtk() {
+  if [ "$1" = "branch" ] || [ "$1" = "checkout" ] || [ "$1" = "clone" ]; then
+    local path
+    path="$(command git tk "$@" --path-only)"
+    [ -n "$path" ] && cd "$path"
+  else
+    command git tk "$@"
+  fi
+}
+```
 
 ## Example Usage
 

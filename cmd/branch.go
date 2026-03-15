@@ -15,6 +15,7 @@ func NewBranchCmd() *cobra.Command {
 	var deleteRemote bool
 	var forceDelete bool
 	var assumeYes bool
+	var pathOnly bool
 
 	cmd := &cobra.Command{
 		Use:   "branch <name> [base]",
@@ -64,7 +65,11 @@ func NewBranchCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+			format := FormatHuman
+			if pathOnly {
+				format = FormatPathOnly
+			}
+			return RenderResponse(cmd.OutOrStdout(), format, treekeeper.Response{
 				Kind: treekeeper.ResponseBranchCreate,
 				BranchCreate: &treekeeper.BranchCreateOutput{
 					Branch:       branchName,
@@ -78,6 +83,7 @@ func NewBranchCmd() *cobra.Command {
 	cmd.Flags().BoolVarP(&forceDelete, "force", "D", false, "Force delete branch even if unmerged")
 	cmd.Flags().BoolVar(&deleteRemote, "remote", false, "Delete remote branch")
 	cmd.Flags().BoolVar(&assumeYes, "yes", false, "Skip delete confirmation")
+	cmd.Flags().BoolVar(&pathOnly, "path-only", false, "Print only the worktree path")
 	return cmd
 }
 

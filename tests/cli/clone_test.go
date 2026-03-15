@@ -57,3 +57,23 @@ func TestCloneCommandWithRepo(t *testing.T) {
 		t.Errorf("expected worktree path info, got: %q", out)
 	}
 }
+
+func TestCloneCommandPathOnly(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	restore := utils.Chdir(t, destRoot)
+	defer restore()
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"clone", "--path-only", srcRepo, destPath})
+		_ = root.Execute()
+	})
+
+	expectedPath := utils.RealPath(t, filepath.Join(destPath, "worktrees", "main"))
+	actualPath := utils.RealPath(t, strings.TrimSpace(out))
+	if actualPath != expectedPath {
+		t.Errorf("expected path-only output %q, got %q", expectedPath, out)
+	}
+}

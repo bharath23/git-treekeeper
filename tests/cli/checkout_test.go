@@ -64,3 +64,27 @@ func TestCheckoutCommandWithBranch(t *testing.T) {
 		t.Errorf("expected output to contain worktree path, got: %q", out)
 	}
 }
+
+func TestCheckoutCommandPathOnly(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"checkout", "--path-only", "feature-path"})
+		_ = root.Execute()
+	})
+
+	expectedPath := utils.RealPath(t, filepath.Join(destPath, "worktrees", "feature-path"))
+	if strings.TrimSpace(out) != expectedPath {
+		t.Errorf("expected path-only output %q, got %q", expectedPath, out)
+	}
+}

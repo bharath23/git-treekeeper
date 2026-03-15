@@ -6,7 +6,9 @@ import (
 )
 
 func NewCheckoutCmd() *cobra.Command {
-	return &cobra.Command{
+	var pathOnly bool
+
+	cmd := &cobra.Command{
 		Use:   "checkout <branch>",
 		Short: "Checkout a branch",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -23,7 +25,11 @@ func NewCheckoutCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+			format := FormatHuman
+			if pathOnly {
+				format = FormatPathOnly
+			}
+			return RenderResponse(cmd.OutOrStdout(), format, treekeeper.Response{
 				Kind: treekeeper.ResponseCheckout,
 				Checkout: &treekeeper.CheckoutOutput{
 					Branch:       branchName,
@@ -32,4 +38,6 @@ func NewCheckoutCmd() *cobra.Command {
 			})
 		},
 	}
+	cmd.Flags().BoolVar(&pathOnly, "path-only", false, "Print only the worktree path")
+	return cmd
 }
