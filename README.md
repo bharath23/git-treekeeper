@@ -77,6 +77,10 @@ Reports worktree health. Each branch is marked as `clean`, `dirty`, or
 git tk doctor
 ```
 
+Options:
+- `--porcelain` prints tab-separated rows with no header.
+- `--json` prints a JSON array of `{branch,state}` objects.
+
 ### list
 
 Lists all worktrees with their branch name and path, sorted by branch name.
@@ -84,6 +88,15 @@ Lists all worktrees with their branch name and path, sorted by branch name.
 ```bash
 git tk list
 ```
+
+Options:
+- `--porcelain` prints tab-separated rows with no header.
+- `--json` prints a JSON array of `{branch,path}` objects.
+
+### Global Flags
+
+- `--quiet` suppresses informational output.
+- `--verbose` enables verbose output (reserved for future diagnostics).
 
 ## Example Usage
 

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"errors"
 	"path/filepath"
 	"strings"
@@ -62,5 +63,75 @@ func TestListCommandOutput(t *testing.T) {
 
 	if !strings.Contains(out, expectedPath) {
 		t.Errorf("expected worktree path from base dir, got: %q", out)
+	}
+}
+
+func TestListCommandPorcelain(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	expectedPath := utils.RealPath(t, filepath.Join(destPath, "worktrees", "main"))
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"list", "--porcelain"})
+		_ = root.Execute()
+	})
+
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) != 1 {
+		t.Fatalf("expected 1 line, got %d: %q", len(lines), out)
+	}
+	if lines[0] != "main\t"+expectedPath {
+		t.Errorf("unexpected porcelain output: %q", out)
+	}
+}
+
+func TestListCommandJSON(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	expectedPath := utils.RealPath(t, filepath.Join(destPath, "worktrees", "main"))
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"list", "--json"})
+		_ = root.Execute()
+	})
+
+	var got []treekeeper.WorktreeInfo
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, out)
+	}
+	if len(got) != 1 {
+		t.Fatalf("expected 1 worktree, got %d", len(got))
+	}
+	if got[0].Branch != "main" || got[0].Path != expectedPath {
+		t.Errorf("unexpected json output: %+v", got[0])
+	}
+}
+
+func TestListCommandFormatConflict(t *testing.T) {
+	root := newRootCmd()
+	root.SetArgs([]string{"list", "--porcelain", "--json"})
+	err := root.Execute()
+	if !errors.Is(err, treekeeper.ErrOutputFormatConflict) {
+		t.Errorf("expected ErrOutputFormatConflict, got %v", err)
 	}
 }

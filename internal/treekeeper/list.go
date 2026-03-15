@@ -8,8 +8,8 @@ import (
 )
 
 type WorktreeInfo struct {
-	Branch string
-	Path   string
+	Branch string `json:"branch"`
+	Path   string `json:"path"`
 }
 
 func ListWorktrees() ([]WorktreeInfo, error) {

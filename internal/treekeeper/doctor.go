@@ -9,8 +9,8 @@ import (
 )
 
 type DoctorInfo struct {
-	Branch string
-	State  string
+	Branch string `json:"branch"`
+	State  string `json:"state"`
 }
 
 func Doctor() ([]DoctorInfo, error) {

@@ -1,0 +1,141 @@
+package cmd
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"strings"
+	"text/tabwriter"
+
+	"github.com/bharath23/git-treekeeper/internal/treekeeper"
+)
+
+type OutputFormat int
+
+const (
+	FormatHuman OutputFormat = iota
+	FormatPorcelain
+	FormatJSON
+)
+
+type RenderFunc func(out io.Writer, format OutputFormat, response treekeeper.Response) error
+
+var renderers = map[treekeeper.ResponseKind]RenderFunc{
+	treekeeper.ResponseBranchCreate: renderBranchCreate,
+	treekeeper.ResponseBranchDelete: renderBranchDelete,
+	treekeeper.ResponseCheckout:     renderCheckout,
+	treekeeper.ResponseClone:        renderClone,
+	treekeeper.ResponseList:         renderList,
+	treekeeper.ResponseDoctor:       renderDoctor,
+}
+
+func RenderResponse(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	render, ok := renderers[response.Kind]
+	if !ok {
+		return fmt.Errorf("unknown response kind")
+	}
+	return render(out, format, response)
+}
+
+func renderList(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	rows := make([][]string, 0, len(response.Worktrees))
+	for _, wt := range response.Worktrees {
+		rows = append(rows, []string{wt.Branch, wt.Path})
+	}
+	return renderTableOutput(out, format, []string{"branch", "path"}, rows, response.Worktrees)
+}
+
+func renderDoctor(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	rows := make([][]string, 0, len(response.Doctor))
+	for _, result := range response.Doctor {
+		rows = append(rows, []string{result.Branch, result.State})
+	}
+	return renderTableOutput(out, format, []string{"branch", "state"}, rows, response.Doctor)
+}
+
+func renderTableOutput(out io.Writer, format OutputFormat, headers []string, rows [][]string, jsonValue any) error {
+	switch format {
+	case FormatHuman:
+		return renderTable(out, headers, rows)
+	case FormatPorcelain:
+		return renderPorcelain(out, rows)
+	case FormatJSON:
+		return renderJSON(out, jsonValue)
+	default:
+		return fmt.Errorf("unknown output format")
+	}
+}
+
+func renderTable(out io.Writer, headers []string, rows [][]string) error {
+	tw := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(tw, strings.Join(headers, "\t"))
+
+	separators := make([]string, len(headers))
+	for i, header := range headers {
+		separators[i] = strings.Repeat("-", len(header))
+	}
+	fmt.Fprintln(tw, strings.Join(separators, "\t"))
+
+	for _, row := range rows {
+		fmt.Fprintln(tw, strings.Join(row, "\t"))
+	}
+	return tw.Flush()
+}
+
+func renderPorcelain(out io.Writer, rows [][]string) error {
+	for _, row := range rows {
+		fmt.Fprintln(out, strings.Join(row, "\t"))
+	}
+	return nil
+}
+
+func renderJSON(out io.Writer, jsonValue any) error {
+	enc := json.NewEncoder(out)
+	return enc.Encode(jsonValue)
+}
+
+func renderBranchCreate(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.BranchCreate == nil {
+		return fmt.Errorf("missing branch create payload")
+	}
+	result := *response.BranchCreate
+	treekeeper.Info("Creating branch %s from %s", result.Branch, result.Base)
+	treekeeper.Info("Worktree path: %s", result.WorktreePath)
+	return nil
+}
+
+func renderBranchDelete(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.BranchDelete == nil {
+		return fmt.Errorf("missing branch delete payload")
+	}
+	result := *response.BranchDelete
+	if result.WorktreePath != "" {
+		treekeeper.Info("Deleted workspace: %s", result.WorktreePath)
+	}
+	treekeeper.Info("Deleted branch: %s", result.Branch)
+	if result.RemoteDeleted {
+		treekeeper.Info("Deleted remote branch: %s/%s", result.RemoteName, result.Branch)
+	}
+	return nil
+}
+
+func renderClone(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.Clone == nil {
+		return fmt.Errorf("missing clone payload")
+	}
+	result := *response.Clone
+	treekeeper.Info("Cloning repo %s", result.RepoURL)
+	treekeeper.Info("Default branch: %s", result.DefaultBranch)
+	treekeeper.Info("Worktree path: %s", result.WorktreePath)
+	return nil
+}
+
+func renderCheckout(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.Checkout == nil {
+		return fmt.Errorf("missing checkout payload")
+	}
+	result := *response.Checkout
+	treekeeper.Info("Checking out branch %s", result.Branch)
+	treekeeper.Info("Worktree path: %s", result.WorktreePath)
+	return nil
+}

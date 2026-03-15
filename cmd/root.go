@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/spf13/cobra"
 )
 
@@ -74,6 +75,9 @@ func Execute() {
 }
 
 func NewRootCmd() *cobra.Command {
+	var quiet bool
+	var verbose bool
+
 	templateOnce.Do(func() {
 		cobra.AddTemplateFunc("displayUseLine", displayUseLine)
 	})
@@ -100,6 +104,12 @@ large repositories and multiple branches simultaneously.`,
 	root.AddCommand(NewCloneCmd())
 	root.AddCommand(NewListCmd())
 	root.AddCommand(NewDoctorCmd())
+	root.PersistentFlags().BoolVar(&quiet, "quiet", false, "Suppress informational output")
+	root.PersistentFlags().BoolVar(&verbose, "verbose", false, "Verbose output")
+	root.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		treekeeper.SetOutputMode(quiet, verbose)
+		return nil
+	}
 	root.SetHelpTemplate(helpTemplate)
 	root.SetUsageTemplate(helpTemplate)
 	return root

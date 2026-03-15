@@ -44,14 +44,15 @@ func NewBranchCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				if result.WorktreePath != "" {
-					treekeeper.Info("Deleted workspace: %s", result.WorktreePath)
-				}
-				treekeeper.Info("Deleted branch: %s", branchName)
-				if result.RemoteDeleted {
-					treekeeper.Info("Deleted remote branch: %s/%s", result.RemoteName, branchName)
-				}
-				return nil
+				return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+					Kind: treekeeper.ResponseBranchDelete,
+					BranchDelete: &treekeeper.BranchDeleteOutput{
+						Branch:        branchName,
+						WorktreePath:  result.WorktreePath,
+						RemoteDeleted: result.RemoteDeleted,
+						RemoteName:    result.RemoteName,
+					},
+				})
 			}
 
 			baseBranch := ""
@@ -63,9 +64,14 @@ func NewBranchCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			treekeeper.Info("Creating branch %s from %s", branchName, result.Base)
-			treekeeper.Info("Worktree path: %s", result.WorktreePath)
-			return nil
+			return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+				Kind: treekeeper.ResponseBranchCreate,
+				BranchCreate: &treekeeper.BranchCreateOutput{
+					Branch:       branchName,
+					Base:         result.Base,
+					WorktreePath: result.WorktreePath,
+				},
+			})
 		},
 	}
 	cmd.Flags().BoolVarP(&deleteBranch, "delete", "d", false, "Delete branch and worktree")

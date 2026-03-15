@@ -16,4 +16,5 @@ var (
 	ErrDeleteAborted         = errors.New("delete aborted")
 	ErrBranchNotFound        = errors.New("branch not found")
 	ErrRemoteBranchNotFound  = errors.New("remote branch not found")
+	ErrOutputFormatConflict  = errors.New("cannot use --porcelain and --json together")
 )

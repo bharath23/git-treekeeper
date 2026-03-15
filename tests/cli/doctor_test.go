@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -55,5 +56,71 @@ func TestDoctorCommandDirty(t *testing.T) {
 	}
 	if !strings.Contains(out, "dirty") {
 		t.Errorf("expected dirty state, got: %q", out)
+	}
+}
+
+func TestDoctorCommandPorcelain(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"doctor", "--porcelain"})
+		_ = root.Execute()
+	})
+
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) != 1 {
+		t.Fatalf("expected 1 line, got %d: %q", len(lines), out)
+	}
+	if lines[0] != "main\tclean" {
+		t.Errorf("unexpected porcelain output: %q", out)
+	}
+}
+
+func TestDoctorCommandJSON(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"doctor", "--json"})
+		_ = root.Execute()
+	})
+
+	var got []treekeeper.DoctorInfo
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, out)
+	}
+	if len(got) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(got))
+	}
+	if got[0].Branch != "main" || got[0].State != "clean" {
+		t.Errorf("unexpected json output: %+v", got[0])
+	}
+}
+
+func TestDoctorCommandFormatConflict(t *testing.T) {
+	root := newRootCmd()
+	root.SetArgs([]string{"doctor", "--porcelain", "--json"})
+	err := root.Execute()
+	if !errors.Is(err, treekeeper.ErrOutputFormatConflict) {
+		t.Errorf("expected ErrOutputFormatConflict, got %v", err)
 	}
 }

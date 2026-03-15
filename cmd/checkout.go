@@ -23,9 +23,13 @@ func NewCheckoutCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			treekeeper.Info("Checking out branch %s", branchName)
-			treekeeper.Info("Worktree path: %s", path)
-			return nil
+			return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+				Kind: treekeeper.ResponseCheckout,
+				Checkout: &treekeeper.CheckoutOutput{
+					Branch:       branchName,
+					WorktreePath: path,
+				},
+			})
 		},
 	}
 }

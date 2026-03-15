@@ -1,15 +1,15 @@
 package cmd
 
 import (
-	"fmt"
-	"text/tabwriter"
-
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/spf13/cobra"
 )
 
 func NewDoctorCmd() *cobra.Command {
-	return &cobra.Command{
+	var porcelain bool
+	var jsonOutput bool
+
+	cmd := &cobra.Command{
 		Use:   "doctor",
 		Short: "Check worktree health",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -17,19 +17,30 @@ func NewDoctorCmd() *cobra.Command {
 				_ = cmd.Usage()
 				return treekeeper.ErrTooManyArgs
 			}
+			if porcelain && jsonOutput {
+				return treekeeper.ErrOutputFormatConflict
+			}
 
 			results, err := treekeeper.Doctor()
 			if err != nil {
 				return err
 			}
 
-			tw := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-			fmt.Fprintln(tw, "branch\tstate")
-			fmt.Fprintln(tw, "------\t-----")
-			for _, result := range results {
-				fmt.Fprintf(tw, "%s\t%s\n", result.Branch, result.State)
+			format := FormatHuman
+			if porcelain {
+				format = FormatPorcelain
+			} else if jsonOutput {
+				format = FormatJSON
 			}
-			return tw.Flush()
+
+			return RenderResponse(cmd.OutOrStdout(), format, treekeeper.Response{
+				Kind:   treekeeper.ResponseDoctor,
+				Doctor: results,
+			})
 		},
 	}
+
+	cmd.Flags().BoolVar(&porcelain, "porcelain", false, "Machine-readable output")
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "JSON output")
+	return cmd
 }

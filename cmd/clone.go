@@ -27,10 +27,14 @@ func NewCloneCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			treekeeper.Info("Cloning repo %s", repoURL)
-			treekeeper.Info("Default branch: %s", defaultBranch)
-			treekeeper.Info("Worktree path: %s", worktreePath)
-			return nil
+			return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+				Kind: treekeeper.ResponseClone,
+				Clone: &treekeeper.CloneOutput{
+					RepoURL:       repoURL,
+					DefaultBranch: defaultBranch,
+					WorktreePath:  worktreePath,
+				},
+			})
 		},
 	}
 }
