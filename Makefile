@@ -9,7 +9,7 @@ VERBOSE ?=
 V ?=
 TESTJSON ?= test.json
 
-.PHONY: build install check test test-v test-verbose test-ci
+.PHONY: build install check test test-acceptance test-v test-verbose test-ci
 
 ifneq ($(strip $(VERBOSE)$(V)),)
 GOTESTFLAGS += -v
@@ -33,6 +33,10 @@ check:
 
 test:
 	go test ./... $(GOTESTFLAGS)
+	$(MAKE) test-acceptance
+
+test-acceptance: build
+	GIT_TK_BIN="$(BUILD_DIR)/$(BIN)" scripts/acceptance-test.sh
 
 test-v:
 	$(MAKE) test VERBOSE=1
@@ -42,3 +46,4 @@ test-verbose:
 
 test-ci:
 	set -o pipefail; go test ./... -json | tee $(TESTJSON)
+	$(MAKE) test-acceptance
