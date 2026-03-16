@@ -170,12 +170,14 @@ Use `--path-only` to auto-`cd` into the returned worktree path. Example for bash
 
 ```bash
 gtk() {
+  local gittk
+  gittk="$(command -v git-tk)" || { echo "git-tk not found in PATH"; return 127; }
   if [ "$1" = "branch" ] || [ "$1" = "checkout" ] || [ "$1" = "clone" ]; then
-    local path
-    path="$(command git tk "$@" --path-only)"
-    [ -n "$path" ] && cd "$path"
+    local wt_path
+    wt_path="$("$gittk" "$@" --path-only)"
+    [ -n "$wt_path" ] && cd "$wt_path"
   else
-    command git tk "$@"
+    "$gittk" "$@"
   fi
 }
 ```
