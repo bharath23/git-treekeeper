@@ -232,7 +232,7 @@ assert_contains "$output" "Pruned branch: merged-branch"
 echo
 echo "== Sync default from upstream =="
 git clone --bare "$tmp/src/repo.git" "$tmp/upstream.git" >/dev/null
-output="$("$BIN" sync --default --add-upstream "$tmp/upstream.git" --set-upstream 2>&1)"
+output="$("$BIN" setup --upstream-url "$tmp/upstream.git" 2>&1)"
 echo "$output"
 git clone "$tmp/upstream.git" "$tmp/upstream-work" >/dev/null
 git -C "$tmp/upstream-work" config user.name git-tk

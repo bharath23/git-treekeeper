@@ -17,6 +17,7 @@ For now, Git TreeKeeper focuses on:
 - Checking worktree health
 - Pruning stale worktrees
 - Syncing branches with remotes
+- Workflow setup for forks
 
 More features like syncing, garbage collection, and stacked branches will be
 added in future releases.
@@ -140,6 +141,24 @@ Options:
 - `--origin <name>` sets the origin remote name for push defaults.
 - `--dry-run` prints what would be synced without making changes.
 
+### setup
+
+Configures fork workflow defaults by adding upstream (if URL provided),
+setting the branch to track upstream, and setting push defaults to origin.
+
+```bash
+git tk setup --upstream-url <url>
+git tk setup --branch main --upstream upstream --origin origin
+```
+
+Options:
+- `--branch <name>` configures the specified branch (defaults to default branch).
+- `--upstream <name>` sets the upstream remote name (default `upstream`).
+- `--origin <name>` sets the origin remote name for push defaults.
+- `--upstream-url <url>` adds the upstream remote if missing.
+- `--install-hooks` installs a pre-commit hook blocking commits on the branch.
+- `--dry-run` prints what would be configured without making changes.
+
 ### Global Flags
 
 - `--quiet` suppresses informational output.
@@ -172,6 +191,7 @@ git tk list
 git tk doctor
 git tk prune
 git tk sync --default
+git tk setup --upstream-url https://github.com/org/repo.git
 ```
 
 ## Build and Install

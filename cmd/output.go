@@ -30,6 +30,7 @@ var renderers = map[treekeeper.ResponseKind]RenderFunc{
 	treekeeper.ResponseDoctor:       renderDoctor,
 	treekeeper.ResponsePrune:        renderPrune,
 	treekeeper.ResponseSync:         renderSync,
+	treekeeper.ResponseSetup:        renderSetup,
 }
 
 func RenderResponse(out io.Writer, format OutputFormat, response treekeeper.Response) error {
@@ -224,5 +225,46 @@ func renderSync(out io.Writer, format OutputFormat, response treekeeper.Response
 	for _, line := range result.MergeOutput {
 		treekeeper.Info("%s", line)
 	}
+	return nil
+}
+
+func renderSetup(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.Setup == nil {
+		return fmt.Errorf("missing setup payload")
+	}
+	result := *response.Setup
+
+	if result.AddedUpstream {
+		if result.DryRun {
+			treekeeper.Info("Would add upstream remote %s (%s)", result.UpstreamName, result.UpstreamURL)
+		} else {
+			treekeeper.Info("Added upstream remote %s (%s)", result.UpstreamName, result.UpstreamURL)
+		}
+	}
+
+	if result.SetUpstream {
+		if result.DryRun {
+			treekeeper.Info("Would set upstream for %s to %s/%s", result.Branch, result.UpstreamName, result.Branch)
+		} else {
+			treekeeper.Info("Set upstream for %s to %s/%s", result.Branch, result.UpstreamName, result.Branch)
+		}
+	}
+
+	if result.SetPushRemote {
+		if result.DryRun {
+			treekeeper.Info("Would set push remote for %s to %s", result.Branch, result.OriginName)
+		} else {
+			treekeeper.Info("Set push remote for %s to %s", result.Branch, result.OriginName)
+		}
+	}
+
+	if result.HooksInstalled {
+		if result.DryRun {
+			treekeeper.Info("Would install hooks in %s", result.HooksPath)
+		} else {
+			treekeeper.Info("Installed hooks in %s", result.HooksPath)
+		}
+	}
+
 	return nil
 }

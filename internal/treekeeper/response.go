@@ -11,6 +11,7 @@ const (
 	ResponseDoctor
 	ResponsePrune
 	ResponseSync
+	ResponseSetup
 )
 
 type Response struct {
@@ -23,6 +24,7 @@ type Response struct {
 	Doctor       []DoctorInfo
 	Prune        *PruneResult
 	Sync         *SyncResult
+	Setup        *SetupResult
 }
 
 type BranchCreateOutput struct {
@@ -70,6 +72,19 @@ type SyncResult struct {
 	PushRemote    string
 	FetchOutput   []string
 	MergeOutput   []string
+}
+
+type SetupResult struct {
+	Branch         string
+	UpstreamName   string
+	UpstreamURL    string
+	OriginName     string
+	AddedUpstream  bool
+	SetUpstream    bool
+	SetPushRemote  bool
+	HooksInstalled bool
+	HooksPath      string
+	DryRun         bool
 }
 
 type PrunedWorktree struct {
