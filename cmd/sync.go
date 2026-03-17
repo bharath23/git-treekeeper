@@ -56,5 +56,10 @@ func NewSyncCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&setUpstream, "set-upstream", false, "Set branch upstream to the upstream remote")
 	cmd.Flags().StringVar(&origin, "origin", "origin", "Origin remote name for push defaults")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be synced without making changes")
+
+	_ = cmd.RegisterFlagCompletionFunc("branch", treekeeper.CompleteBranches)
+	_ = cmd.RegisterFlagCompletionFunc("remote", treekeeper.CompleteRemotes)
+	_ = cmd.RegisterFlagCompletionFunc("upstream", treekeeper.CompleteRemotes)
+
 	return cmd
 }

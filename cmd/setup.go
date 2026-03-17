@@ -47,5 +47,9 @@ func NewSetupCmd() *cobra.Command {
 	cmd.Flags().StringVar(&upstreamURL, "upstream-url", "", "Add upstream remote with the given URL")
 	cmd.Flags().BoolVar(&installHooks, "install-hooks", false, "Install hooks that block commits on the branch")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be configured without making changes")
+
+	_ = cmd.RegisterFlagCompletionFunc("upstream", treekeeper.CompleteRemotes)
+	_ = cmd.RegisterFlagCompletionFunc("origin", treekeeper.CompleteRemotes)
+
 	return cmd
 }

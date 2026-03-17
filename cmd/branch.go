@@ -78,6 +78,7 @@ func NewBranchCmd() *cobra.Command {
 				},
 			})
 		},
+		ValidArgsFunction: treekeeper.CompleteBranches,
 	}
 	cmd.Flags().BoolVarP(&deleteBranch, "delete", "d", false, "Delete branch and worktree")
 	cmd.Flags().BoolVarP(&forceDelete, "force", "D", false, "Force delete branch even if unmerged")

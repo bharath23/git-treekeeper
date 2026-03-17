@@ -183,6 +183,39 @@ git tk status
 # Runs standard 'git log --oneline'
 git tk log --oneline
 
-# Runs 'git branch -v' (because git-tk branch doesn't have -v)
-git tk branch -v
+## 8. Shell Autocompletion
+
+`git-tk` supports native tab completion for commands, branches, and remotes.
+
+### Enabling Completion
+To load completions for your current shell session:
+
+**Bash:**
+```bash
+source <(git-tk completion bash)
+```
+
+**Zsh:**
+```bash
+source <(git-tk completion zsh)
+```
+
+**Fish:**
+```bash
+git-tk completion fish | source
+```
+
+### Wrapper Integration
+If you use the `gtk` wrapper function, you must tell your shell to use `git-tk`'s completion logic for `gtk`.
+
+**Zsh:**
+Add this to your `.zshrc` *after* defining the function:
+```bash
+compdef gtk=git-tk
+```
+
+**Bash:**
+Add this to your `.bashrc`:
+```bash
+complete -o default -F __start_git_tk gtk
 ```

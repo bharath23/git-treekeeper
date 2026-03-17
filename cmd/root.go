@@ -128,7 +128,6 @@ large repositories and multiple branches simultaneously.`,
 		},
 	}
 
-	root.CompletionOptions.DisableDefaultCmd = true
 	root.AddCommand(NewBranchCmd())
 	root.AddCommand(NewCheckoutCmd())
 	root.AddCommand(NewCloneCmd())

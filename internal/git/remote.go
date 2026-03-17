@@ -3,6 +3,7 @@ package git
 import (
 	"errors"
 	"os/exec"
+	"strings"
 )
 
 func RemoteBranchExists(gitDir, remoteName, branchName string) (bool, error) {
@@ -42,4 +43,15 @@ func RemoteURL(gitDir, remoteName string) (string, error) {
 func AddRemote(gitDir, remoteName, remoteURL string) error {
 	_, err := Run("--git-dir", gitDir, "remote", "add", remoteName, remoteURL)
 	return err
+}
+
+func Remotes(gitDir string) ([]string, error) {
+	out, err := Run("--git-dir", gitDir, "remote")
+	if err != nil {
+		return nil, err
+	}
+	if out == "" {
+		return nil, nil
+	}
+	return strings.Split(out, "\n"), nil
 }

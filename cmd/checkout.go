@@ -37,7 +37,9 @@ func NewCheckoutCmd() *cobra.Command {
 				},
 			})
 		},
+		ValidArgsFunction: treekeeper.CompleteBranches,
 	}
+
 	cmd.Flags().BoolVar(&pathOnly, "path-only", false, "Print only the worktree path")
 	return cmd
 }
