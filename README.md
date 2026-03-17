@@ -19,8 +19,14 @@ For now, Git TreeKeeper focuses on:
 - Syncing branches with remotes
 - Workflow setup for forks
 
-More features like syncing, garbage collection, and stacked branches will be
-added in future releases.
+Upcoming Roadmap:
+
+- **Sync All**: `git tk sync --all` to update all active worktrees at once.
+- **Auto-Fix**: `git tk doctor --fix` to proactively resolve worktree health issues.
+- **Stacked Branches**: Support for managing chains of dependent PRs.
+- **Garbage Collection**: Automatic cleanup of old, merged branches.
+- **Shell Completion**: Autocompletion for branches and commands in Bash/Zsh.
+- **Ephemeral Worktrees**: Short-lived, self-cleaning workspaces for CI/CD and reviews.
 
 ## CLI
 
@@ -182,8 +188,11 @@ gtk() {
 }
 ```
 
-## Example Usage
+## Examples
 
+For detailed, scenario-based examples, see [docs/examples.md](docs/examples.md).
+
+Quick reference:
 ```bash
 git tk clone https://github.com/user/repo.git
 cd repo/worktrees/main
