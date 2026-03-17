@@ -31,6 +31,7 @@ var renderers = map[treekeeper.ResponseKind]RenderFunc{
 	treekeeper.ResponsePrune:        renderPrune,
 	treekeeper.ResponseSync:         renderSync,
 	treekeeper.ResponseSetup:        renderSetup,
+	treekeeper.ResponsePassThrough:  renderPassThrough,
 }
 
 func RenderResponse(out io.Writer, format OutputFormat, response treekeeper.Response) error {
@@ -266,5 +267,9 @@ func renderSetup(out io.Writer, format OutputFormat, response treekeeper.Respons
 		}
 	}
 
+	return nil
+}
+
+func renderPassThrough(out io.Writer, format OutputFormat, response treekeeper.Response) error {
 	return nil
 }

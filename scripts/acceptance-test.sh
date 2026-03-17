@@ -311,6 +311,23 @@ echo "$output"
 assert_contains "$output" "Deleted remote branch: origin/feature-remote"
 
 echo
+echo "== Git Command Pass-Through =="
+# Test pass-through command
+output="$("$BIN" status 2>&1)"
+echo "$output"
+assert_contains "$output" "On branch main"
+
+# Test pass-through flag on existing command
+output="$("$BIN" branch -v 2>&1)"
+echo "$output"
+assert_contains "$output" "main"
+
+# Test pass-through flag on root
+output="$("$BIN" --version 2>&1)"
+echo "$output"
+assert_contains "$output" "git version"
+
+echo
 echo "== Too many args =="
 expect_fail "Clone too many args" "$BIN" clone "$tmp/src" one two
 expect_fail "Branch too many args" "$BIN" branch a b c

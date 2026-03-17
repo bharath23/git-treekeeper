@@ -166,3 +166,23 @@ gtk() {
 - **Unmerged Branch:** `git tk branch -d` will refuse to delete a branch that hasn't been merged into the default branch. Use `-D` to override this if you're sure.
 - **Active Worktree:** You cannot delete a branch if your current shell is inside that branch's worktree. Move to a different directory first.
 - **Merge/Rebase in Progress:** `git-tk doctor` will identify worktrees where a merge or rebase is stuck, and deletion will be blocked until the operation is completed or aborted.
+
+---
+
+## 7. Git Command Pass-Through
+
+
+`git-tk` is designed to be a transparent addition to your Git workflow. If you run a command or flag that `git-tk` doesn't recognize, it automatically passes it through to the standard `git` command.
+
+This means you can use `git tk` as a complete replacement for `git` in your terminal:
+
+```bash
+# Runs standard 'git status'
+git tk status
+
+# Runs standard 'git log --oneline'
+git tk log --oneline
+
+# Runs 'git branch -v' (because git-tk branch doesn't have -v)
+git tk branch -v
+```

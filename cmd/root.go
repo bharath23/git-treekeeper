@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -69,7 +69,25 @@ func displayUseLine(cmd *cobra.Command) string {
 
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		errStr := err.Error()
+		if strings.HasPrefix(errStr, "unknown command") ||
+			strings.HasPrefix(errStr, "unknown flag") ||
+			strings.HasPrefix(errStr, "unknown shorthand flag") {
+			response, err := treekeeper.PassThrough(os.Args[1:])
+			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					os.Exit(exitErr.ExitCode())
+				}
+				treekeeper.Error("%v", err)
+				os.Exit(1)
+			}
+			if err := RenderResponse(RootCmd.OutOrStdout(), FormatHuman, response); err != nil {
+				treekeeper.Error("%v", err)
+				os.Exit(1)
+			}
+			return
+		}
+		treekeeper.Error("%v", err)
 		os.Exit(1)
 	}
 }
@@ -95,7 +113,19 @@ large repositories and multiple branches simultaneously.`,
 		DisableSuggestions: true,
 		SilenceErrors:      true,
 		SilenceUsage:       true,
-		Version:            version,
+		FParseErrWhitelist: cobra.FParseErrWhitelist{
+			UnknownFlags: true,
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(os.Args) > 1 {
+				response, err := treekeeper.PassThrough(os.Args[1:])
+				if err != nil {
+					return err
+				}
+				return RenderResponse(cmd.OutOrStdout(), FormatHuman, response)
+			}
+			return cmd.Help()
+		},
 	}
 
 	root.CompletionOptions.DisableDefaultCmd = true

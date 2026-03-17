@@ -12,6 +12,7 @@ const (
 	ResponsePrune
 	ResponseSync
 	ResponseSetup
+	ResponsePassThrough
 )
 
 type Response struct {
@@ -25,6 +26,7 @@ type Response struct {
 	Prune        *PruneResult
 	Sync         *SyncResult
 	Setup        *SetupResult
+	PassThrough  *PassThroughResult
 }
 
 type BranchCreateOutput struct {
@@ -105,4 +107,8 @@ type PrunedBranch struct {
 type SkippedBranch struct {
 	Branch string
 	Reason string
+}
+
+type PassThroughResult struct {
+	Args []string
 }

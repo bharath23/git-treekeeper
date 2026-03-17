@@ -22,7 +22,8 @@ For now, Git TreeKeeper focuses on:
 Upcoming Roadmap:
 
 - **Sync All**: `git tk sync --all` to update all active worktrees at once.
-- **Auto-Fix**: `git tk doctor --fix` to proactively resolve worktree health issues.
+- **Merge/Rebase Management**: Proactive tools to resolve stuck merges or rebases.
+- **Auto-Fix**: `git tk doctor --fix` to automatically resolve worktree health issues.
 - **Stacked Branches**: Support for managing chains of dependent PRs.
 - **Garbage Collection**: Automatic cleanup of old, merged branches.
 - **Shell Completion**: Autocompletion for branches and commands in Bash/Zsh.
@@ -31,7 +32,14 @@ Upcoming Roadmap:
 ## CLI
 
 The binary is named `git-tk`. Git discovers it as a plugin, so users invoke it
-as `git tk ...`. Direct invocation with `git-tk ...` also works. Example usage:
+as `git tk ...`. Direct invocation with `git-tk ...` also works.
+
+**Pass-Through:** Any command or flag not explicitly handled by `git-tk` is
+automatically passed through to the underlying `git` command. For example,
+`git tk status` runs `git status`, and `git tk branch -v` runs `git branch -v`.
+This ensures a seamless experience when using standard Git workflows.
+
+Example usage:
 
 ```bash
 git tk clone <repo-url>
