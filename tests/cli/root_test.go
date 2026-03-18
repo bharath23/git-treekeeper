@@ -54,7 +54,7 @@ func TestPassThroughFlag(t *testing.T) {
 	}
 }
 
-func TestPassThroughUnknownFlagOnRoot(t *testing.T) {
+func TestVersionFlag(t *testing.T) {
 	bin := buildBinary(t)
 	srcRepo := utils.InitRepo(t)
 	tmp := t.TempDir()
@@ -63,7 +63,7 @@ func TestPassThroughUnknownFlagOnRoot(t *testing.T) {
 		t.Fatalf("clone failed: %v", err)
 	}
 
-	// '--version' is a git flag, should pass through
+	// '--version' should be handled by git-tk now
 	cmd := exec.Command(bin, "--version")
 	cmd.Dir = tmp
 	out, err := cmd.CombinedOutput()
@@ -71,8 +71,8 @@ func TestPassThroughUnknownFlagOnRoot(t *testing.T) {
 		t.Fatalf("git-tk --version failed: %v, output: %s", err, string(out))
 	}
 
-	if !strings.Contains(string(out), "git version") {
-		t.Errorf("expected git version output, got: %q", string(out))
+	if !strings.Contains(string(out), "git-tk version") {
+		t.Errorf("expected git-tk version output, got: %q", string(out))
 	}
 }
 

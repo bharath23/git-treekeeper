@@ -322,10 +322,10 @@ output="$("$BIN" branch -v 2>&1)"
 echo "$output"
 assert_contains "$output" "main"
 
-# Test pass-through flag on root
+# Test git-tk version
 output="$("$BIN" --version 2>&1)"
 echo "$output"
-assert_contains "$output" "git version"
+assert_contains "$output" "git-tk version"
 
 echo
 echo "== Too many args =="

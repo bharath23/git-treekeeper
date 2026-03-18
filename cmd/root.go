@@ -113,6 +113,7 @@ large repositories and multiple branches simultaneously.`,
 		DisableSuggestions: true,
 		SilenceErrors:      true,
 		SilenceUsage:       true,
+		Version:            version,
 		FParseErrWhitelist: cobra.FParseErrWhitelist{
 			UnknownFlags: true,
 		},
