@@ -274,6 +274,16 @@ echo "$output"
 assert_contains "$output" "Deleted branch: feature-del"
 
 echo
+echo "== Branch delete (silent path-only) =="
+output="$("$BIN" branch feature-silent 2>&1)"
+output="$("$BIN" branch -d --path-only feature-silent 2>&1)"
+if [ -n "$output" ]; then
+  echo "Expected no output for branch -d --path-only, got:" >&2
+  printf "%s\n" "$output" >&2
+  exit 1
+fi
+
+echo
 echo "== Branch delete (dirty) =="
 output="$("$BIN" branch feature-dirty 2>&1)"
 echo "$output"

@@ -212,3 +212,32 @@ func TestBranchDeleteMergedAllows(t *testing.T) {
 		t.Errorf("expected delete output, got: %q", out)
 	}
 }
+
+func TestBranchDeletePathOnlyProducesNoStdout(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	_, err = treekeeper.CreateBranch("feature-silent", "")
+	if err != nil {
+		t.Fatalf("create branch: %v", err)
+	}
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		// Use --path-only which should result in empty stdout for delete
+		root.SetArgs([]string{"branch", "-d", "--path-only", "feature-silent"})
+		_ = root.Execute()
+	})
+
+	if strings.TrimSpace(out) != "" {
+		t.Errorf("expected empty stdout for branch delete with --path-only, got: %q", out)
+	}
+}

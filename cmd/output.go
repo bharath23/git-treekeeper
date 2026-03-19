@@ -117,6 +117,9 @@ func renderBranchDelete(out io.Writer, format OutputFormat, response treekeeper.
 	if response.BranchDelete == nil {
 		return fmt.Errorf("missing branch delete payload")
 	}
+	if format == FormatPathOnly {
+		return nil
+	}
 	result := *response.BranchDelete
 	if result.WorktreePath != "" {
 		treekeeper.Info("Deleted workspace: %s", result.WorktreePath)

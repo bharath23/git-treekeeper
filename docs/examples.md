@@ -151,7 +151,7 @@ gtk() {
   if [[ "$1" =~ ^(branch|checkout|clone)$ ]]; then
     local wt_path
     wt_path="$("$gittk" "$@" --path-only)"
-    [ -n "$wt_path" ] && cd "$wt_path"
+    [ -d "$wt_path" ] && cd "$wt_path"
   else
     "$gittk" "$@"
   fi

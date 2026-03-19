@@ -37,6 +37,11 @@ func NewBranchCmd() *cobra.Command {
 			}
 
 			branchName := args[0]
+			format := FormatHuman
+			if pathOnly {
+				format = FormatPathOnly
+			}
+
 			if deleteBranch {
 				if err := confirmDelete(branchName, forceDelete, deleteRemote, assumeYes); err != nil {
 					return err
@@ -45,7 +50,7 @@ func NewBranchCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+				return RenderResponse(cmd.OutOrStdout(), format, treekeeper.Response{
 					Kind: treekeeper.ResponseBranchDelete,
 					BranchDelete: &treekeeper.BranchDeleteOutput{
 						Branch:        branchName,
@@ -64,10 +69,6 @@ func NewBranchCmd() *cobra.Command {
 			result, err := treekeeper.CreateBranch(branchName, baseBranch)
 			if err != nil {
 				return err
-			}
-			format := FormatHuman
-			if pathOnly {
-				format = FormatPathOnly
 			}
 			return RenderResponse(cmd.OutOrStdout(), format, treekeeper.Response{
 				Kind: treekeeper.ResponseBranchCreate,
