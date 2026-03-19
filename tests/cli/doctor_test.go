@@ -116,6 +116,48 @@ func TestDoctorCommandJSON(t *testing.T) {
 	}
 }
 
+func TestDoctorCommandStaleAndOrphaned(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	// 1. Create a stale worktree (tracked by git, directory gone)
+	_, err = treekeeper.CreateBranch("stale-branch", "")
+	if err != nil {
+		t.Fatalf("create stale branch: %v", err)
+	}
+	stalePath := filepath.Join(destPath, "worktrees", "stale-branch")
+	if err := os.RemoveAll(stalePath); err != nil {
+		t.Fatalf("remove stale dir: %v", err)
+	}
+
+	// 2. Create an orphaned directory (not tracked by git)
+	orphanPath := filepath.Join(destPath, "worktrees", "orphan-dir")
+	if err := os.MkdirAll(orphanPath, 0o755); err != nil {
+		t.Fatalf("create orphan dir: %v", err)
+	}
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"doctor"})
+		_ = root.Execute()
+	})
+
+	if !strings.Contains(out, "stale-branch") || !strings.Contains(out, "stale (directory missing)") {
+		t.Errorf("expected stale branch detection, got: %q", out)
+	}
+	if !strings.Contains(out, "orphan-dir") || !strings.Contains(out, "orphaned directory") {
+		t.Errorf("expected orphaned directory detection, got: %q", out)
+	}
+}
+
 func TestDoctorCommandFormatConflict(t *testing.T) {
 	root := newRootCmd()
 	root.SetArgs([]string{"doctor", "--porcelain", "--json"})

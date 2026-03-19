@@ -14,21 +14,63 @@ type DoctorInfo struct {
 }
 
 func Doctor() ([]DoctorInfo, error) {
-	worktrees, err := ListWorktrees()
+	workDir, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]DoctorInfo, 0, len(worktrees))
+	gitDir, baseDir, err := resolveGitDir(workDir)
+	if err != nil {
+		return nil, err
+	}
+
+	worktrees, err := git.WorktreeList(gitDir)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]DoctorInfo, 0)
+	trackedPaths := make(map[string]bool)
+
 	for _, wt := range worktrees {
+		if wt.Branch == "" {
+			continue
+		}
+		trackedPaths[wt.Path] = true
 		state, err := worktreeState(wt.Path)
 		if err != nil {
+			// If we can't resolve git dir or something, it might be stale
+			if os.IsNotExist(err) {
+				results = append(results, DoctorInfo{
+					Branch: wt.Branch,
+					State:  "stale (directory missing)",
+				})
+				continue
+			}
 			return nil, err
 		}
 		results = append(results, DoctorInfo{
 			Branch: wt.Branch,
 			State:  state,
 		})
+	}
+
+	// Check for orphaned directories in worktrees root
+	wtRoot := worktreeRoot(baseDir)
+	entries, err := os.ReadDir(wtRoot)
+	if err == nil {
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			fullPath := filepath.Join(wtRoot, entry.Name())
+			if !trackedPaths[fullPath] {
+				results = append(results, DoctorInfo{
+					Branch: "(none) - " + entry.Name(),
+					State:  "orphaned directory",
+				})
+			}
+		}
 	}
 
 	sort.Slice(results, func(i, j int) bool {
@@ -39,6 +81,10 @@ func Doctor() ([]DoctorInfo, error) {
 }
 
 func worktreeState(worktreePath string) (string, error) {
+	if _, err := os.Stat(worktreePath); os.IsNotExist(err) {
+		return "stale (directory missing)", nil
+	}
+
 	gitDir, err := git.ResolveGitDir(worktreePath)
 	if err != nil {
 		return "", err
