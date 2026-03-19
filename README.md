@@ -13,11 +13,12 @@ For now, Git TreeKeeper focuses on:
 - Creating new branches and worktrees
 - Checking out branches
 - Deleting branches and worktrees
-- Listing worktrees
-- Checking worktree health
+- List worktrees
+- Checking worktree health (including stale and orphaned detection)
 - Pruning stale worktrees
 - Syncing branches with remotes
 - Workflow setup for forks
+- Shell autocompletion for Bash/Zsh
 
 Upcoming Roadmap:
 
@@ -26,8 +27,8 @@ Upcoming Roadmap:
 - **Auto-Fix**: `git tk doctor --fix` to automatically resolve worktree health issues.
 - **Stacked Branches**: Support for managing chains of dependent PRs.
 - **Garbage Collection**: Automatic cleanup of old, merged branches.
-- **Shell Completion**: Autocompletion for branches and commands in Bash/Zsh.
 - **Ephemeral Worktrees**: Short-lived, self-cleaning workspaces for CI/CD and reviews.
+
 
 ## CLI
 
@@ -96,8 +97,11 @@ Options:
 
 ### doctor
 
-Reports worktree health. Each branch is marked as `clean`, `dirty`, or
-`merge/rebase in progress`.
+Reports worktree health. Detects:
+- `clean` / `dirty` states.
+- `merge` or `rebase` operations in progress.
+- `stale (directory missing)`: worktrees tracked by Git but missing from disk.
+- `orphaned directory`: directories in `worktrees/` that are not tracked by Git.
 
 ```bash
 git tk doctor
