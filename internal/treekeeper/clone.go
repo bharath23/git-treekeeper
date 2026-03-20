@@ -29,12 +29,16 @@ func Clone(repoURL, destPath string) (string, string, error) {
 		defaultBranch = "main"
 	}
 
-	worktreesRoot := worktreeRoot(baseDir)
-	if err := os.MkdirAll(worktreesRoot, 0o755); err != nil {
+	ctx := RepoContext{
+		BaseDir:       baseDir,
+		GitDir:        gitDir,
+		WorktreesRoot: worktreeRoot(baseDir),
+	}
+	if err := EnsureWorktreesRoot(ctx); err != nil {
 		return "", "", err
 	}
 
-	worktreePath := filepath.Join(worktreesRoot, defaultBranch)
+	worktreePath := filepath.Join(ctx.WorktreesRoot, defaultBranch)
 	if err := git.AddWorktreeExisting(gitDir, worktreePath, defaultBranch); err != nil {
 		return "", "", err
 	}

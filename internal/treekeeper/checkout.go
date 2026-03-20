@@ -14,17 +14,16 @@ func Checkout(branch string) (string, error) {
 		return "", err
 	}
 
-	gitDir, baseDir, err := resolveGitDir(workDir)
+	ctx, err := ResolveContext(workDir)
 	if err != nil {
 		return "", err
 	}
 
-	worktreesRoot := worktreeRoot(baseDir)
-	if err := os.MkdirAll(worktreesRoot, 0o755); err != nil {
+	if err := EnsureWorktreesRoot(ctx); err != nil {
 		return "", err
 	}
 
-	worktrees, err := git.WorktreeList(gitDir)
+	worktrees, err := git.WorktreeList(ctx.GitDir)
 	if err != nil {
 		return "", err
 	}
@@ -34,25 +33,21 @@ func Checkout(branch string) (string, error) {
 		}
 	}
 
-	worktreePath := filepath.Join(worktreesRoot, branchName)
-	branchExists, err := git.BranchExists(gitDir, branchName)
+	worktreePath := filepath.Join(ctx.WorktreesRoot, branchName)
+	branchExists, err := git.BranchExists(ctx.GitDir, branchName)
 	if err != nil {
 		return "", err
 	}
 
 	if branchExists {
-		if err := git.AddWorktreeExisting(gitDir, worktreePath, branchName); err != nil {
+		if err := git.AddWorktreeExisting(ctx.GitDir, worktreePath, branchName); err != nil {
 			return "", err
 		}
 		return worktreePath, nil
 	}
 
-	baseBranch, err := git.DefaultBranch(gitDir)
-	if err != nil || baseBranch == "" {
-		baseBranch = "main"
-	}
-
-	if err := git.AddWorktreeNew(gitDir, worktreePath, branchName, baseBranch); err != nil {
+	baseBranch := resolveBaseBranch(ctx.GitDir, workDir, false)
+	if err := git.AddWorktreeNew(ctx.GitDir, worktreePath, branchName, baseBranch); err != nil {
 		return "", err
 	}
 

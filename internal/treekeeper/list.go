@@ -18,12 +18,12 @@ func ListWorktrees() ([]WorktreeInfo, error) {
 		return nil, err
 	}
 
-	gitDir, _, err := resolveGitDir(workDir)
+	ctx, err := ResolveContext(workDir)
 	if err != nil {
 		return nil, err
 	}
 
-	worktrees, err := git.WorktreeList(gitDir)
+	worktrees, err := git.WorktreeList(ctx.GitDir)
 	if err != nil {
 		return nil, err
 	}

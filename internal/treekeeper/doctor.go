@@ -19,12 +19,12 @@ func Doctor() ([]DoctorInfo, error) {
 		return nil, err
 	}
 
-	gitDir, baseDir, err := resolveGitDir(workDir)
+	ctx, err := ResolveContext(workDir)
 	if err != nil {
 		return nil, err
 	}
 
-	worktrees, err := git.WorktreeList(gitDir)
+	worktrees, err := git.WorktreeList(ctx.GitDir)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func Doctor() ([]DoctorInfo, error) {
 	}
 
 	// Check for orphaned directories in worktrees root
-	wtRoot := worktreeRoot(baseDir)
+	wtRoot := ctx.WorktreesRoot
 	entries, err := os.ReadDir(wtRoot)
 	if err == nil {
 		for _, entry := range entries {
@@ -85,51 +85,56 @@ func worktreeState(worktreePath string) (string, error) {
 		return "stale (directory missing)", nil
 	}
 
-	gitDir, err := git.ResolveGitDir(worktreePath)
+	dirty, inProgress, rebase, err := worktreeCheck(worktreePath)
 	if err != nil {
 		return "", err
 	}
-
-	if exists(filepath.Join(gitDir, "rebase-apply")) || exists(filepath.Join(gitDir, "rebase-merge")) {
-		return "rebase in progress", nil
-	}
-	if exists(filepath.Join(gitDir, "MERGE_HEAD")) {
+	if inProgress {
+		if rebase {
+			return "rebase in progress", nil
+		}
 		return "merge in progress", nil
 	}
-
-	status, err := git.StatusPorcelain(worktreePath)
-	if err != nil {
-		return "", err
-	}
-	if status != "" {
+	if dirty {
 		return "dirty", nil
 	}
-
 	return "clean", nil
 }
 
 func inProgress(worktreePath string) (bool, error) {
-	gitDir, err := git.ResolveGitDir(worktreePath)
+	_, inProgress, _, err := worktreeCheck(worktreePath)
 	if err != nil {
 		return false, err
 	}
-
-	if exists(filepath.Join(gitDir, "rebase-apply")) || exists(filepath.Join(gitDir, "rebase-merge")) {
-		return true, nil
-	}
-	if exists(filepath.Join(gitDir, "MERGE_HEAD")) {
-		return true, nil
-	}
-
-	return false, nil
+	return inProgress, nil
 }
 
 func isDirty(worktreePath string) (bool, error) {
-	status, err := git.StatusPorcelain(worktreePath)
+	dirty, _, _, err := worktreeCheck(worktreePath)
 	if err != nil {
 		return false, err
 	}
-	return status != "", nil
+	return dirty, nil
+}
+
+func worktreeCheck(worktreePath string) (dirty bool, inProgress bool, rebase bool, err error) {
+	gitDir, err := git.ResolveGitDir(worktreePath)
+	if err != nil {
+		return false, false, false, err
+	}
+
+	if exists(filepath.Join(gitDir, "rebase-apply")) || exists(filepath.Join(gitDir, "rebase-merge")) {
+		return false, true, true, nil
+	}
+	if exists(filepath.Join(gitDir, "MERGE_HEAD")) {
+		return false, true, false, nil
+	}
+
+	status, err := git.StatusPorcelain(worktreePath)
+	if err != nil {
+		return false, false, false, err
+	}
+	return status != "", false, false, nil
 }
 
 func exists(path string) bool {

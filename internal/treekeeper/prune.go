@@ -97,10 +97,7 @@ func Prune(options PruneOptions) (PruneResult, error) {
 		active[wt.Branch] = struct{}{}
 	}
 
-	baseBranch, err := git.DefaultBranch(gitDir)
-	if err != nil || baseBranch == "" {
-		baseBranch = "main"
-	}
+	baseBranch := resolveBaseBranch(gitDir, workDir, false)
 
 	branches, err := git.LocalBranches(gitDir)
 	if err != nil {

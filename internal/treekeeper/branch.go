@@ -20,29 +20,22 @@ func CreateBranch(branch, base string) (BranchResult, error) {
 		return BranchResult{}, err
 	}
 
-	gitDir, baseDir, err := resolveGitDir(workDir)
+	ctx, err := ResolveContext(workDir)
 	if err != nil {
 		return BranchResult{}, err
 	}
 
 	resolvedBase := baseBranch
 	if resolvedBase == "" {
-		resolvedBase, err = git.CurrentBranch(workDir)
-		if err != nil || resolvedBase == "" {
-			resolvedBase, err = git.DefaultBranch(gitDir)
-			if err != nil || resolvedBase == "" {
-				resolvedBase = "main"
-			}
-		}
+		resolvedBase = resolveBaseBranch(ctx.GitDir, workDir, true)
 	}
 
-	worktreesRoot := worktreeRoot(baseDir)
-	if err := os.MkdirAll(worktreesRoot, 0o755); err != nil {
+	if err := EnsureWorktreesRoot(ctx); err != nil {
 		return BranchResult{}, err
 	}
 
-	worktreePath := filepath.Join(worktreesRoot, branchName)
-	if err := git.AddWorktreeNew(gitDir, worktreePath, branchName, resolvedBase); err != nil {
+	worktreePath := filepath.Join(ctx.WorktreesRoot, branchName)
+	if err := git.AddWorktreeNew(ctx.GitDir, worktreePath, branchName, resolvedBase); err != nil {
 		return BranchResult{}, err
 	}
 

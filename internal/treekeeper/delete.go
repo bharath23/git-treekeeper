@@ -70,13 +70,7 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 
 	useForceDelete := force
 	if !force {
-		baseBranch, err := git.CurrentBranch(workDir)
-		if err != nil || baseBranch == "" {
-			baseBranch, err = git.DefaultBranch(gitDir)
-			if err != nil || baseBranch == "" {
-				baseBranch = "main"
-			}
-		}
+		baseBranch := resolveBaseBranch(gitDir, workDir, true)
 		mergeCheck, err := git.IsMerged(gitDir, branchName, baseBranch)
 		if err != nil {
 			return DeleteResult{}, err

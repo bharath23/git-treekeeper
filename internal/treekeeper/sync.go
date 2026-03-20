@@ -25,17 +25,17 @@ func Sync(options SyncOptions) (SyncResult, error) {
 		return SyncResult{}, err
 	}
 
-	gitDir, _, err := resolveGitDir(workDir)
+	ctx, err := ResolveContext(workDir)
 	if err != nil {
 		return SyncResult{}, err
 	}
 
-	result, err := prepareSync(gitDir, workDir, options)
+	result, err := prepareSync(ctx.GitDir, workDir, options)
 	if err != nil {
 		return result, err
 	}
 
-	return runSyncFetchMerge(gitDir, result, options, false)
+	return runSyncFetchMerge(ctx.GitDir, result, options, false)
 }
 
 func SyncAll(options SyncOptions) (SyncAllResult, error) {
@@ -44,12 +44,12 @@ func SyncAll(options SyncOptions) (SyncAllResult, error) {
 		return SyncAllResult{}, err
 	}
 
-	gitDir, _, err := resolveGitDir(workDir)
+	ctx, err := ResolveContext(workDir)
 	if err != nil {
 		return SyncAllResult{}, err
 	}
 
-	worktrees, err := git.WorktreeList(gitDir)
+	worktrees, err := git.WorktreeList(ctx.GitDir)
 	if err != nil {
 		return SyncAllResult{}, err
 	}
@@ -83,7 +83,7 @@ func SyncAll(options SyncOptions) (SyncAllResult, error) {
 		branchOptions := options
 		branchOptions.Branch = wt.Branch
 
-		res, err := prepareSync(gitDir, wt.Path, branchOptions)
+		res, err := prepareSync(ctx.GitDir, wt.Path, branchOptions)
 		if err != nil {
 			result.Skipped = append(result.Skipped, SkippedSync{
 				Branch: wt.Branch,
@@ -94,7 +94,7 @@ func SyncAll(options SyncOptions) (SyncAllResult, error) {
 		}
 
 		skipFetch := fetchedRemotes[res.Remote]
-		res, err = runSyncFetchMerge(gitDir, res, branchOptions, skipFetch)
+		res, err = runSyncFetchMerge(ctx.GitDir, res, branchOptions, skipFetch)
 		if err != nil {
 			result.Skipped = append(result.Skipped, SkippedSync{
 				Branch: wt.Branch,
