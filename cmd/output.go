@@ -100,13 +100,20 @@ func renderJSON(out io.Writer, jsonValue any) error {
 	return enc.Encode(jsonValue)
 }
 
+func renderWorktreePath(out io.Writer, format OutputFormat, path string) bool {
+	if format != FormatPathOnly {
+		return false
+	}
+	fmt.Fprintln(out, path)
+	return true
+}
+
 func renderBranchCreate(out io.Writer, format OutputFormat, response treekeeper.Response) error {
 	if response.BranchCreate == nil {
 		return fmt.Errorf("missing branch create payload")
 	}
 	result := *response.BranchCreate
-	if format == FormatPathOnly {
-		fmt.Fprintln(out, result.WorktreePath)
+	if renderWorktreePath(out, format, result.WorktreePath) {
 		return nil
 	}
 	treekeeper.Info("Creating branch %s from %s", result.Branch, result.Base)
@@ -137,8 +144,7 @@ func renderClone(out io.Writer, format OutputFormat, response treekeeper.Respons
 		return fmt.Errorf("missing clone payload")
 	}
 	result := *response.Clone
-	if format == FormatPathOnly {
-		fmt.Fprintln(out, result.WorktreePath)
+	if renderWorktreePath(out, format, result.WorktreePath) {
 		return nil
 	}
 	treekeeper.Info("Cloning repo %s", result.RepoURL)
@@ -152,8 +158,7 @@ func renderCheckout(out io.Writer, format OutputFormat, response treekeeper.Resp
 		return fmt.Errorf("missing checkout payload")
 	}
 	result := *response.Checkout
-	if format == FormatPathOnly {
-		fmt.Fprintln(out, result.WorktreePath)
+	if renderWorktreePath(out, format, result.WorktreePath) {
 		return nil
 	}
 	treekeeper.Info("Checking out branch %s", result.Branch)
