@@ -16,13 +16,12 @@ For now, Git TreeKeeper focuses on:
 - List worktrees
 - Checking worktree health (including stale and orphaned detection)
 - Pruning stale worktrees
-- Syncing branches with remotes
+- Syncing branches with remotes (including `sync --all`)
 - Workflow setup for forks
 - Shell autocompletion for Bash/Zsh
 
 Upcoming Roadmap:
 
-- **Sync All**: `git tk sync --all` to update all active worktrees at once.
 - **Merge/Rebase Management**: Proactive tools to resolve stuck merges or rebases.
 - **Auto-Fix**: `git tk doctor --fix` to automatically resolve worktree health issues.
 - **Stacked Branches**: Support for managing chains of dependent PRs.
@@ -140,15 +139,17 @@ Options:
 ### sync
 
 Syncs a branch using `git fetch` plus `--ff-only` fast-forward, matching a
-read-only main workflow.
+read-only main workflow. By default, it syncs only "clean" worktrees.
 
 ```bash
 git tk sync
 git tk sync --default
 git tk sync --branch feature-x
+git tk sync --all
 ```
 
 Options:
+- `--all` syncs all active, clean worktrees.
 - `--default` syncs the default branch worktree.
 - `--branch <name>` syncs the specified branch worktree.
 - `--remote <name>` fetches from a specific remote.

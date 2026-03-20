@@ -1,6 +1,7 @@
 package treekeeper
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -29,6 +30,88 @@ func Sync(options SyncOptions) (SyncResult, error) {
 		return SyncResult{}, err
 	}
 
+	result, err := prepareSync(gitDir, workDir, options)
+	if err != nil {
+		return result, err
+	}
+
+	return runSyncFetchMerge(gitDir, result, options, false)
+}
+
+func SyncAll(options SyncOptions) (SyncAllResult, error) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		return SyncAllResult{}, err
+	}
+
+	gitDir, _, err := resolveGitDir(workDir)
+	if err != nil {
+		return SyncAllResult{}, err
+	}
+
+	worktrees, err := git.WorktreeList(gitDir)
+	if err != nil {
+		return SyncAllResult{}, err
+	}
+
+	result := SyncAllResult{
+		Results: make([]SyncResult, 0),
+		Skipped: make([]SkippedSync, 0),
+	}
+
+	fetchedRemotes := make(map[string]bool)
+
+	for _, wt := range worktrees {
+		if wt.Branch == "" {
+			continue
+		}
+
+		state, err := worktreeState(wt.Path)
+		if err != nil || state != "clean" {
+			reason := state
+			if err != nil {
+				reason = err.Error()
+			}
+			result.Skipped = append(result.Skipped, SkippedSync{
+				Branch: wt.Branch,
+				Path:   wt.Path,
+				Reason: reason,
+			})
+			continue
+		}
+
+		branchOptions := options
+		branchOptions.Branch = wt.Branch
+
+		res, err := prepareSync(gitDir, wt.Path, branchOptions)
+		if err != nil {
+			result.Skipped = append(result.Skipped, SkippedSync{
+				Branch: wt.Branch,
+				Path:   wt.Path,
+				Reason: err.Error(),
+			})
+			continue
+		}
+
+		skipFetch := fetchedRemotes[res.Remote]
+		res, err = runSyncFetchMerge(gitDir, res, branchOptions, skipFetch)
+		if err != nil {
+			result.Skipped = append(result.Skipped, SkippedSync{
+				Branch: wt.Branch,
+				Path:   wt.Path,
+				Reason: err.Error(),
+			})
+			continue
+		}
+
+		result.Results = append(result.Results, res)
+		fetchedRemotes[res.Remote] = true
+	}
+
+	return result, nil
+}
+
+func prepareSync(gitDir, workDir string, options SyncOptions) (SyncResult, error) {
 	defaultBranch, err := git.DefaultBranch(gitDir)
 	if err != nil || defaultBranch == "" {
 		defaultBranch = "main"
@@ -171,17 +254,39 @@ func Sync(options SyncOptions) (SyncResult, error) {
 	result.Remote = remoteName
 	result.RemoteBranch = remoteBranch
 
+	return result, nil
+}
+
+func runSyncFetchMerge(gitDir string, result SyncResult, options SyncOptions, skipFetch bool) (SyncResult, error) {
 	if options.DryRun {
 		return result, nil
 	}
 
-	fetchOutput, err := git.Run("--git-dir", gitDir, "fetch", remoteName)
+	if !skipFetch {
+		fetchOutput, err := git.Run("--git-dir", gitDir, "fetch", result.Remote)
+		if err != nil {
+			return result, err
+		}
+		result.FetchOutput = splitLines(fetchOutput)
+	}
+
+	remoteRef := fmt.Sprintf("refs/remotes/%s/%s", result.Remote, result.RemoteBranch)
+	remoteRefExists, err := git.RefExists(gitDir, remoteRef)
 	if err != nil {
 		return result, err
 	}
-	result.FetchOutput = splitLines(fetchOutput)
+	if !remoteRefExists {
+		refspec := fmt.Sprintf("+refs/heads/%s:%s", result.RemoteBranch, remoteRef)
+		fallbackOutput, err := git.Run("--git-dir", gitDir, "fetch", result.Remote, refspec)
+		if err != nil {
+			return result, err
+		}
+		if lines := splitLines(fallbackOutput); len(lines) > 0 {
+			result.FetchOutput = append(result.FetchOutput, lines...)
+		}
+	}
 
-	mergeOutput, err := git.RunInDir(worktreePath, "merge", "--ff-only", remoteName+"/"+remoteBranch)
+	mergeOutput, err := git.RunInDir(result.WorktreePath, "merge", "--ff-only", result.Remote+"/"+result.RemoteBranch)
 	if err != nil {
 		return result, err
 	}

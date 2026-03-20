@@ -8,6 +8,7 @@ import (
 func NewSyncCmd() *cobra.Command {
 	var branch string
 	var useDefault bool
+	var syncAll bool
 	var remote string
 	var upstream string
 	var addUpstream string
@@ -23,8 +24,26 @@ func NewSyncCmd() *cobra.Command {
 				_ = cmd.Usage()
 				return treekeeper.ErrTooManyArgs
 			}
-			if useDefault && branch != "" {
+			if (useDefault && branch != "") || (syncAll && (useDefault || branch != "")) {
 				return treekeeper.ErrSyncBranchConflict
+			}
+
+			if syncAll {
+				result, err := treekeeper.SyncAll(treekeeper.SyncOptions{
+					Remote:         remote,
+					Upstream:       upstream,
+					AddUpstreamURL: addUpstream,
+					SetUpstream:    setUpstream,
+					Origin:         origin,
+					DryRun:         dryRun,
+				})
+				if err != nil {
+					return err
+				}
+				return RenderResponse(cmd.OutOrStdout(), FormatHuman, treekeeper.Response{
+					Kind:    treekeeper.ResponseSyncAll,
+					SyncAll: &result,
+				})
 			}
 
 			result, err := treekeeper.Sync(treekeeper.SyncOptions{
@@ -48,6 +67,7 @@ func NewSyncCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVar(&syncAll, "all", false, "Sync all active, clean worktrees")
 	cmd.Flags().BoolVar(&useDefault, "default", false, "Sync the default branch")
 	cmd.Flags().StringVar(&branch, "branch", "", "Sync the specified branch")
 	cmd.Flags().StringVar(&remote, "remote", "", "Remote to fetch from")

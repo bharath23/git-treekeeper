@@ -13,7 +13,9 @@ func TestCompletionSubcommands(t *testing.T) {
 	root := newRootCmd()
 
 	out := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
 	root.SetOut(out)
+	root.SetErr(errBuf)
 	root.SetArgs([]string{"__complete", "che"})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute failed: %v", err)
@@ -46,7 +48,9 @@ func TestCompletionBranches(t *testing.T) {
 	root := newRootCmd()
 
 	out := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
 	root.SetOut(out)
+	root.SetErr(errBuf)
 	root.SetArgs([]string{"__complete", "checkout", "feat"})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute failed: %v", err)
@@ -79,7 +83,9 @@ func TestCompletionRemotes(t *testing.T) {
 	root := newRootCmd()
 
 	out := new(bytes.Buffer)
+	errBuf := new(bytes.Buffer)
 	root.SetOut(out)
+	root.SetErr(errBuf)
 	root.SetArgs([]string{"__complete", "sync", "--remote", "up"})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute failed: %v", err)

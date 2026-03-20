@@ -141,6 +141,7 @@ large repositories and multiple branches simultaneously.`,
 	root.PersistentFlags().BoolVar(&verbose, "verbose", false, "Verbose output")
 	root.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		treekeeper.SetOutputMode(quiet, verbose)
+		treekeeper.SetOutput(cmd.OutOrStdout(), cmd.ErrOrStderr())
 		return nil
 	}
 	root.SetHelpTemplate(helpTemplate)

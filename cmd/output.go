@@ -30,6 +30,7 @@ var renderers = map[treekeeper.ResponseKind]RenderFunc{
 	treekeeper.ResponseDoctor:       renderDoctor,
 	treekeeper.ResponsePrune:        renderPrune,
 	treekeeper.ResponseSync:         renderSync,
+	treekeeper.ResponseSyncAll:      renderSyncAll,
 	treekeeper.ResponseSetup:        renderSetup,
 	treekeeper.ResponsePassThrough:  renderPassThrough,
 }
@@ -192,7 +193,37 @@ func renderSync(out io.Writer, format OutputFormat, response treekeeper.Response
 	if response.Sync == nil {
 		return fmt.Errorf("missing sync payload")
 	}
-	result := *response.Sync
+	return renderSyncResult(out, *response.Sync)
+}
+
+func renderSyncAll(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.SyncAll == nil {
+		return fmt.Errorf("missing sync all payload")
+	}
+	result := *response.SyncAll
+
+	for i, res := range result.Results {
+		if i > 0 {
+			fmt.Fprintln(out)
+		}
+		if err := renderSyncResult(out, res); err != nil {
+			return err
+		}
+	}
+
+	if len(result.Skipped) > 0 {
+		fmt.Fprintln(out)
+		treekeeper.Warning("Skipped branches:")
+		for _, skip := range result.Skipped {
+			treekeeper.Warning("- %s: %s", skip.Branch, skip.Reason)
+		}
+	}
+
+	return nil
+}
+
+func renderSyncResult(out io.Writer, result treekeeper.SyncResult) error {
+	treekeeper.Info("Syncing %s from %s/%s", result.Branch, result.Remote, result.RemoteBranch)
 
 	if result.AddedUpstream {
 		if result.DryRun {
@@ -214,8 +245,6 @@ func renderSync(out io.Writer, format OutputFormat, response treekeeper.Response
 			}
 		}
 	}
-
-	treekeeper.Info("Syncing %s from %s/%s", result.Branch, result.Remote, result.RemoteBranch)
 
 	if result.DryRun {
 		treekeeper.Info("Would fetch %s", result.Remote)

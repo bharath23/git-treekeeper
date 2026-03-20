@@ -13,6 +13,7 @@ const (
 	ResponseSync
 	ResponseSetup
 	ResponsePassThrough
+	ResponseSyncAll
 )
 
 type Response struct {
@@ -25,6 +26,7 @@ type Response struct {
 	Doctor       []DoctorInfo
 	Prune        *PruneResult
 	Sync         *SyncResult
+	SyncAll      *SyncAllResult
 	Setup        *SetupResult
 	PassThrough  *PassThroughResult
 }
@@ -106,6 +108,17 @@ type PrunedBranch struct {
 
 type SkippedBranch struct {
 	Branch string
+	Reason string
+}
+
+type SyncAllResult struct {
+	Results []SyncResult
+	Skipped []SkippedSync
+}
+
+type SkippedSync struct {
+	Branch string
+	Path   string
 	Reason string
 }
 
