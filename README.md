@@ -16,6 +16,7 @@ For now, Git TreeKeeper focuses on:
 - List worktrees
 - Checking worktree health (including stale and orphaned detection)
 - Pruning stale worktrees
+- Garbage collecting old merged branches (dry-run by default)
 - Syncing branches with remotes (including `sync --all`)
 - Workflow setup for forks
 - Shell autocompletion for Bash/Zsh
@@ -25,7 +26,6 @@ Upcoming Roadmap:
 - **Merge/Rebase Management**: Proactive tools to resolve stuck merges or rebases.
 - **Auto-Fix**: `git tk doctor --fix` to automatically resolve worktree health issues.
 - **Stacked Branches**: Support for managing chains of dependent PRs.
-- **Garbage Collection**: Automatic cleanup of old, merged branches.
 - **Ephemeral Worktrees**: Short-lived, self-cleaning workspaces for CI/CD and reviews.
 
 
@@ -135,6 +135,20 @@ git tk prune
 Options:
 - `--dry-run` prints what would be pruned without making changes.
 - `--merged-branches` also deletes merged branches that have no worktree.
+
+### gc
+
+Garbage collects local branches that are merged and older than the threshold.
+Runs in dry-run mode by default and skips active worktrees.
+
+```bash
+git tk gc
+git tk gc --apply
+```
+
+Options:
+- `--apply` deletes branches (default is dry-run).
+- `--age-days <days>` only considers branches older than the threshold (default 30).
 
 ### sync
 

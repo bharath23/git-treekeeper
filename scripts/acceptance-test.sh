@@ -71,6 +71,15 @@ normalize_path() {
   (cd "$dir" && printf "%s/%s" "$(pwd -P)" "$base")
 }
 
+rfc3339_days_ago() {
+  local days="$1"
+  if date -u -d "${days} days ago" +"%Y-%m-%dT%H:%M:%SZ" >/dev/null 2>&1; then
+    date -u -d "${days} days ago" +"%Y-%m-%dT%H:%M:%SZ"
+    return
+  fi
+  date -u -v-"${days}"d +"%Y-%m-%dT%H:%M:%SZ"
+}
+
 assert_contains_path() {
   local haystack="$1"
   local path="$2"
@@ -228,6 +237,23 @@ git -C "$tmp/src/worktrees/main" merge merged-branch
 output="$("$BIN" prune --merged-branches 2>&1)"
 echo "$output"
 assert_contains "$output" "Pruned branch: merged-branch"
+
+echo
+echo "== GC merged branches =="
+old_date="$(rfc3339_days_ago 40)"
+git -C "$tmp/src/worktrees/main" checkout -b gc-branch
+echo "gc" >> "$tmp/src/worktrees/main/gc.txt"
+git -C "$tmp/src/worktrees/main" add gc.txt
+GIT_AUTHOR_DATE="$old_date" GIT_COMMITTER_DATE="$old_date" git -C "$tmp/src/worktrees/main" -c user.name=git-tk -c user.email=git-tk@example.com commit -m "gc commit"
+git -C "$tmp/src/worktrees/main" checkout main
+git -C "$tmp/src/worktrees/main" merge --squash gc-branch
+git -C "$tmp/src/worktrees/main" -c user.name=git-tk -c user.email=git-tk@example.com commit -m "gc squash merge"
+output="$("$BIN" gc 2>&1)"
+echo "$output"
+assert_contains "$output" "Would gc branch: gc-branch"
+output="$("$BIN" gc --apply 2>&1)"
+echo "$output"
+assert_contains "$output" "GC branch: gc-branch"
 
 echo
 echo "== Sync default from upstream =="

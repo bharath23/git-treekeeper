@@ -129,6 +129,21 @@ git tk prune --dry-run
 git tk prune
 ```
 
+### Garbage Collecting Old Branches
+Clean up local branches that have been merged and are older than the threshold.
+`gc` runs in dry-run mode by default and skips active worktrees.
+
+```bash
+# Preview what would be deleted (default)
+git tk gc
+
+# Delete branches older than 30 days (default threshold)
+git tk gc --apply
+
+# Use a custom threshold
+git tk gc --apply --age-days 60
+```
+
 ---
 
 ## 5. Advanced & Scripting

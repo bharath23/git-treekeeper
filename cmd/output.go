@@ -29,6 +29,7 @@ var renderers = map[treekeeper.ResponseKind]RenderFunc{
 	treekeeper.ResponseList:         renderList,
 	treekeeper.ResponseDoctor:       renderDoctor,
 	treekeeper.ResponsePrune:        renderPrune,
+	treekeeper.ResponseGC:           renderGC,
 	treekeeper.ResponseSync:         renderSync,
 	treekeeper.ResponseSyncAll:      renderSyncAll,
 	treekeeper.ResponseSetup:        renderSetup,
@@ -187,6 +188,24 @@ func renderPrune(out io.Writer, format OutputFormat, response treekeeper.Respons
 	}
 	for _, wt := range result.SkippedWorktrees {
 		treekeeper.Verbose("Skipped worktree %s: %s", wt.Path, wt.Reason)
+	}
+	for _, branch := range result.SkippedBranches {
+		treekeeper.Verbose("Skipped branch %s: %s", branch.Branch, branch.Reason)
+	}
+	return nil
+}
+
+func renderGC(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.GC == nil {
+		return fmt.Errorf("missing gc payload")
+	}
+	result := *response.GC
+	for _, branch := range result.PrunedBranches {
+		if result.DryRun {
+			treekeeper.Info("Would gc branch: %s", branch.Branch)
+		} else {
+			treekeeper.Info("GC branch: %s", branch.Branch)
+		}
 	}
 	for _, branch := range result.SkippedBranches {
 		treekeeper.Verbose("Skipped branch %s: %s", branch.Branch, branch.Reason)

@@ -18,6 +18,21 @@ func RunGit(t *testing.T, dir string, args ...string) string {
 	return string(out)
 }
 
+func RunGitEnv(t *testing.T, dir string, env map[string]string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	cmd.Env = os.Environ()
+	for key, value := range env {
+		cmd.Env = append(cmd.Env, key+"="+value)
+	}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %v failed: %v\n%s", args, err, string(out))
+	}
+	return string(out)
+}
+
 func InitRepo(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()

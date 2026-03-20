@@ -135,6 +135,7 @@ large repositories and multiple branches simultaneously.`,
 	root.AddCommand(NewListCmd())
 	root.AddCommand(NewDoctorCmd())
 	root.AddCommand(NewPruneCmd())
+	root.AddCommand(NewGCCmd())
 	root.AddCommand(NewSyncCmd())
 	root.AddCommand(NewSetupCmd())
 	root.PersistentFlags().BoolVar(&quiet, "quiet", false, "Suppress informational output")

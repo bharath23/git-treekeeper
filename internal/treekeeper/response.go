@@ -10,6 +10,7 @@ const (
 	ResponseList
 	ResponseDoctor
 	ResponsePrune
+	ResponseGC
 	ResponseSync
 	ResponseSetup
 	ResponsePassThrough
@@ -25,6 +26,7 @@ type Response struct {
 	Worktrees    []WorktreeInfo
 	Doctor       []DoctorInfo
 	Prune        *PruneResult
+	GC           *GCResult
 	Sync         *SyncResult
 	SyncAll      *SyncAllResult
 	Setup        *SetupResult
@@ -61,6 +63,13 @@ type PruneResult struct {
 	PrunedBranches   []PrunedBranch
 	SkippedWorktrees []SkippedWorktree
 	SkippedBranches  []SkippedBranch
+}
+
+type GCResult struct {
+	DryRun          bool
+	AgeDays         int
+	PrunedBranches  []PrunedBranch
+	SkippedBranches []SkippedBranch
 }
 
 type SyncResult struct {

@@ -3,7 +3,9 @@ package git
 import (
 	"errors"
 	"os/exec"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type MergeCheck struct {
@@ -131,4 +133,20 @@ func BranchPushRemote(gitDir, branchName string) (string, error) {
 	}
 
 	return "", err
+}
+
+func BranchCommitTime(gitDir, branchName string) (time.Time, error) {
+	out, err := Run("--git-dir", gitDir, "log", "-1", "--format=%ct", branchName)
+	if err != nil {
+		return time.Time{}, err
+	}
+	trimmed := strings.TrimSpace(out)
+	if trimmed == "" {
+		return time.Time{}, errors.New("no commits for branch")
+	}
+	seconds, err := strconv.ParseInt(trimmed, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(seconds, 0).UTC(), nil
 }
