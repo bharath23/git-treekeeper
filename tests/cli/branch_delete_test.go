@@ -213,6 +213,51 @@ func TestBranchDeleteMergedAllows(t *testing.T) {
 	}
 }
 
+func TestBranchDeleteSquashMergedAllows(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	branchResult, err := treekeeper.CreateBranch("feature-squash", "")
+	if err != nil {
+		t.Fatalf("create branch: %v", err)
+	}
+
+	restoreFeature := utils.Chdir(t, branchResult.WorktreePath)
+	filePath := filepath.Join(branchResult.WorktreePath, "squash.txt")
+	if err := os.WriteFile(filePath, []byte("squash"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+	utils.RunGit(t, branchResult.WorktreePath, "add", ".")
+	utils.RunGit(t, branchResult.WorktreePath, "-c", "user.name=git-tk", "-c", "user.email=git-tk@example.com", "commit", "-m", "squash me")
+	restoreFeature()
+
+	utils.RunGit(t, worktreePath, "merge", "--squash", "feature-squash")
+	utils.RunGit(t, worktreePath, "-c", "user.name=git-tk", "-c", "user.email=git-tk@example.com", "commit", "-m", "squash merge (#123)")
+
+	if err := os.WriteFile(filepath.Join(worktreePath, "main.txt"), []byte("main"), 0o644); err != nil {
+		t.Fatalf("write main file: %v", err)
+	}
+	utils.RunGit(t, worktreePath, "add", ".")
+	utils.RunGit(t, worktreePath, "-c", "user.name=git-tk", "-c", "user.email=git-tk@example.com", "commit", "-m", "main ahead")
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"branch", "-d", "feature-squash"})
+		_ = root.Execute()
+	})
+	if !strings.Contains(out, "Deleted branch: feature-squash") {
+		t.Errorf("expected delete output, got: %q", out)
+	}
+}
+
 func TestBranchDeletePathOnlyProducesNoStdout(t *testing.T) {
 	srcRepo := utils.InitRepo(t)
 	destRoot := t.TempDir()

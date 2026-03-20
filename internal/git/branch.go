@@ -6,19 +6,63 @@ import (
 	"strings"
 )
 
-func IsMerged(gitDir, branchName, baseBranch string) (bool, error) {
+type MergeCheck struct {
+	Merged   bool
+	Ancestor bool
+}
+
+func IsMerged(gitDir, branchName, baseBranch string) (MergeCheck, error) {
 	cmd := exec.Command("git", "--git-dir", gitDir, "merge-base", "--is-ancestor", branchName, baseBranch)
 	err := cmd.Run()
 	if err == nil {
-		return true, nil
+		return MergeCheck{Merged: true, Ancestor: true}, nil
 	}
 
+	if !isExitCode(err, 1) {
+		return MergeCheck{}, err
+	}
+
+	mergeBase, err := Run("--git-dir", gitDir, "merge-base", baseBranch, branchName)
+	if err != nil {
+		return MergeCheck{}, err
+	}
+
+	changedPaths, err := Run("--git-dir", gitDir, "diff", "--name-only", mergeBase+".."+branchName)
+	if err != nil {
+		return MergeCheck{}, err
+	}
+	if strings.TrimSpace(changedPaths) == "" {
+		return MergeCheck{Merged: true}, nil
+	}
+	paths := strings.Split(changedPaths, "\n")
+	filtered := make([]string, 0, len(paths))
+	for _, path := range paths {
+		path = strings.TrimSpace(path)
+		if path == "" {
+			continue
+		}
+		filtered = append(filtered, path)
+	}
+	if len(filtered) == 0 {
+		return MergeCheck{Merged: true}, nil
+	}
+
+	args := append([]string{"--git-dir", gitDir, "diff", "--quiet", baseBranch, branchName, "--"}, filtered...)
+	diffCmd := exec.Command("git", args...)
+	err = diffCmd.Run()
+	if err == nil {
+		return MergeCheck{Merged: true}, nil
+	}
+	if isExitCode(err, 1) {
+		return MergeCheck{}, nil
+	}
+
+	return MergeCheck{}, err
+}
+
+func isExitCode(err error, code int) bool {
 	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
-		return false, nil
-	}
-
-	return false, err
+	return errors.As(err, &exitErr) && exitErr.ExitCode() == code
 }
 
 func RefExists(gitDir, ref string) (bool, error) {

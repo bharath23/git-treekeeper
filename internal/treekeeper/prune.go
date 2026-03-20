@@ -119,7 +119,7 @@ func Prune(options PruneOptions) (PruneResult, error) {
 			continue
 		}
 
-		merged, err := git.IsMerged(gitDir, branch, baseBranch)
+		mergeCheck, err := git.IsMerged(gitDir, branch, baseBranch)
 		if err != nil {
 			result.SkippedBranches = append(result.SkippedBranches, SkippedBranch{
 				Branch: branch,
@@ -127,7 +127,7 @@ func Prune(options PruneOptions) (PruneResult, error) {
 			})
 			continue
 		}
-		if !merged {
+		if !mergeCheck.Merged {
 			result.SkippedBranches = append(result.SkippedBranches, SkippedBranch{
 				Branch: branch,
 				Reason: ErrBranchNotMerged.Error(),
@@ -142,7 +142,11 @@ func Prune(options PruneOptions) (PruneResult, error) {
 			continue
 		}
 
-		if _, err := git.Run("--git-dir", gitDir, "branch", "-d", branch); err != nil {
+		deleteFlag := "-d"
+		if !mergeCheck.Ancestor {
+			deleteFlag = "-D"
+		}
+		if _, err := git.Run("--git-dir", gitDir, "branch", deleteFlag, branch); err != nil {
 			result.SkippedBranches = append(result.SkippedBranches, SkippedBranch{
 				Branch: branch,
 				Reason: err.Error(),

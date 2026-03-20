@@ -142,3 +142,45 @@ func TestPruneMergedBranches(t *testing.T) {
 		t.Fatalf("expected merged branch deleted")
 	}
 }
+
+func TestPruneMergedBranchesSquash(t *testing.T) {
+	srcRepo := utils.InitRepo(t)
+	destRoot := t.TempDir()
+	destPath := filepath.Join(destRoot, "repo")
+	_, worktreePath, err := treekeeper.Clone(srcRepo, destPath)
+	if err != nil {
+		t.Fatalf("clone failed: %v", err)
+	}
+
+	restore := utils.Chdir(t, worktreePath)
+	defer restore()
+
+	utils.RunGit(t, worktreePath, "checkout", "-b", "feature-squash")
+	if err := os.WriteFile(filepath.Join(worktreePath, "squash.txt"), []byte("squash"), 0o644); err != nil {
+		t.Fatalf("write squash file: %v", err)
+	}
+	utils.RunGit(t, worktreePath, "add", ".")
+	utils.RunGit(t, worktreePath, "-c", "user.name=git-tk", "-c", "user.email=git-tk@example.com", "commit", "-m", "squash me")
+	utils.RunGit(t, worktreePath, "checkout", "main")
+	utils.RunGit(t, worktreePath, "merge", "--squash", "feature-squash")
+	utils.RunGit(t, worktreePath, "-c", "user.name=git-tk", "-c", "user.email=git-tk@example.com", "commit", "-m", "squash merge (#123)")
+
+	root := newRootCmd()
+	out := utils.CaptureStdout(func() {
+		root.SetArgs([]string{"prune", "--merged-branches"})
+		_ = root.Execute()
+	})
+
+	if !strings.Contains(out, "Pruned branch: feature-squash") {
+		t.Errorf("expected prune branch output, got: %q", out)
+	}
+
+	gitDir := filepath.Join(destPath, "repo.git")
+	exists, err := git.RefExists(gitDir, "refs/heads/feature-squash")
+	if err != nil {
+		t.Fatalf("check branch exists: %v", err)
+	}
+	if exists {
+		t.Fatalf("expected merged branch deleted")
+	}
+}

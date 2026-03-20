@@ -68,6 +68,7 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 		}
 	}
 
+	useForceDelete := force
 	if !force {
 		baseBranch, err := git.CurrentBranch(workDir)
 		if err != nil || baseBranch == "" {
@@ -76,12 +77,15 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 				baseBranch = "main"
 			}
 		}
-		merged, err := git.IsMerged(gitDir, branchName, baseBranch)
+		mergeCheck, err := git.IsMerged(gitDir, branchName, baseBranch)
 		if err != nil {
 			return DeleteResult{}, err
 		}
-		if !merged {
+		if !mergeCheck.Merged {
 			return DeleteResult{}, ErrBranchNotMerged
+		}
+		if !mergeCheck.Ancestor {
+			useForceDelete = true
 		}
 
 		if deleteRemote {
@@ -95,7 +99,7 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 				if err != nil {
 					return DeleteResult{}, err
 				}
-				if !mergedRemote {
+				if !mergedRemote.Merged {
 					return DeleteResult{}, ErrBranchNotMerged
 				}
 			}
@@ -109,7 +113,7 @@ func DeleteBranch(branchName string, deleteRemote bool, force bool) (DeleteResul
 	}
 
 	deleteArgs := []string{"--git-dir", gitDir, "branch"}
-	if force {
+	if useForceDelete {
 		deleteArgs = append(deleteArgs, "-D")
 	} else {
 		deleteArgs = append(deleteArgs, "-d")
