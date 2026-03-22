@@ -15,6 +15,7 @@ const (
 	ResponseSetup
 	ResponsePassThrough
 	ResponseSyncAll
+	ResponseRepair
 )
 
 type Response struct {
@@ -30,6 +31,7 @@ type Response struct {
 	Sync         *SyncResult
 	SyncAll      *SyncAllResult
 	Setup        *SetupResult
+	Repair       *RepairResult
 	PassThrough  *PassThroughResult
 }
 

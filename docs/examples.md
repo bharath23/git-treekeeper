@@ -86,6 +86,29 @@ feature-x   dirty                     origin/feature-x
 feature-y   merge/rebase in progress  none
 ```
 
+### Repairing Origin Tracking
+If `git status` doesn't show ahead/behind in treekeeper-managed bare repos,
+repair origin tracking and upstreams.
+
+```bash
+git tk repair
+```
+
+```bash
+# Repair just one branch
+git tk repair --branch feature-x --apply
+```
+
+```bash
+# Explicitly fix tracking
+git tk repair --tracking --apply --remote origin
+```
+
+```bash
+# Apply changes (repair defaults to dry-run)
+git tk repair --apply
+```
+
 ### Listing All Worktrees
 ```bash
 git tk list

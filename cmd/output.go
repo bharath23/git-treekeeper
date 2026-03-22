@@ -33,6 +33,7 @@ var renderers = map[treekeeper.ResponseKind]RenderFunc{
 	treekeeper.ResponseSync:         renderSync,
 	treekeeper.ResponseSyncAll:      renderSyncAll,
 	treekeeper.ResponseSetup:        renderSetup,
+	treekeeper.ResponseRepair:       renderRepair,
 	treekeeper.ResponsePassThrough:  renderPassThrough,
 }
 
@@ -247,6 +248,44 @@ func renderSyncAll(out io.Writer, format OutputFormat, response treekeeper.Respo
 		}
 	}
 
+	return nil
+}
+
+func renderRepair(out io.Writer, format OutputFormat, response treekeeper.Response) error {
+	if response.Repair == nil {
+		return fmt.Errorf("missing repair payload")
+	}
+	if format == FormatPathOnly {
+		return nil
+	}
+	result := *response.Repair
+	verb := "Configured"
+	if result.DryRun {
+		verb = "Would configure"
+	}
+	if result.AddedFetchRefspec {
+		treekeeper.Info("%s %s fetch refspec", verb, result.Remote)
+	}
+	if result.Fetched {
+		if result.DryRun {
+			treekeeper.Info("Would fetch %s", result.Remote)
+		} else {
+			treekeeper.Info("Fetched %s", result.Remote)
+		}
+	} else if result.DryRun {
+		treekeeper.Info("Would fetch %s", result.Remote)
+	}
+
+	for _, branch := range result.UpdatedUpstreams {
+		if result.DryRun {
+			treekeeper.Info("Would set upstream for %s to %s/%s", branch, result.Remote, branch)
+		} else {
+			treekeeper.Info("Set upstream for %s to %s/%s", branch, result.Remote, branch)
+		}
+	}
+	for _, branch := range result.SkippedBranches {
+		treekeeper.Verbose("Skipped branch %s: %s", branch.Branch, branch.Reason)
+	}
 	return nil
 }
 

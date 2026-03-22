@@ -40,6 +40,34 @@ func RemoteURL(gitDir, remoteName string) (string, error) {
 	return Run("--git-dir", gitDir, "remote", "get-url", remoteName)
 }
 
+func RemoteFetchRefspecs(gitDir, remoteName string) ([]string, error) {
+	cmd := exec.Command("git", "--git-dir", gitDir, "config", "--get-all", "remote."+remoteName+".fetch")
+	out, err := cmd.Output()
+	if err == nil {
+		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+		var refspecs []string
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			refspecs = append(refspecs, line)
+		}
+		return refspecs, nil
+	}
+
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		return nil, nil
+	}
+	return nil, err
+}
+
+func AddRemoteFetchRefspec(gitDir, remoteName, refspec string) error {
+	_, err := Run("--git-dir", gitDir, "config", "--add", "remote."+remoteName+".fetch", refspec)
+	return err
+}
+
 func AddRemote(gitDir, remoteName, remoteURL string) error {
 	_, err := Run("--git-dir", gitDir, "remote", "add", remoteName, remoteURL)
 	return err

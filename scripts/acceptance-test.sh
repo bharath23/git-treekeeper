@@ -211,6 +211,32 @@ assert_contains "$output" "\"state\":\"dirty\""
 assert_contains "$output" "\"tracking\":\"origin/main\""
 
 echo
+echo "== Repair (dry run) =="
+git --git-dir "$tmp/src/repo.git" config --unset-all branch.main.remote || true
+git --git-dir "$tmp/src/repo.git" config --unset-all branch.main.merge || true
+git --git-dir "$tmp/src/repo.git" config --unset-all remote.origin.fetch || true
+git --git-dir "$tmp/src/repo.git" update-ref -d refs/remotes/origin/main || true
+output="$("$BIN" repair 2>&1)"
+echo "$output"
+assert_contains "$output" "Would configure origin fetch refspec"
+assert_contains "$output" "Would fetch origin"
+assert_contains "$output" "Would set upstream for main to origin/main"
+
+echo
+echo "== Repair (apply) =="
+output="$("$BIN" repair --apply 2>&1)"
+echo "$output"
+assert_contains "$output" "Configured origin fetch refspec"
+assert_contains "$output" "Fetched origin"
+assert_contains "$output" "Set upstream for main to origin/main"
+remote="$(git --git-dir "$tmp/src/repo.git" config --get branch.main.remote || true)"
+merge_ref="$(git --git-dir "$tmp/src/repo.git" config --get branch.main.merge || true)"
+if [ "$remote" != "origin" ] || [ "$merge_ref" != "refs/heads/main" ]; then
+  echo "Expected upstream origin/main, got remote=$remote merge=$merge_ref" >&2
+  exit 1
+fi
+
+echo
 echo "== Prune stale worktree =="
 output="$("$BIN" branch stale-branch 2>&1)"
 echo "$output"

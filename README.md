@@ -94,6 +94,24 @@ git tk clone <repo-url> [path]
 Options:
 - `--path-only` prints only the worktree path.
 
+### repair
+
+Repairs origin tracking for treekeeper-managed bare repos. This configures
+`origin` to fetch remote branches into `refs/remotes/origin/*`, fetches `origin`,
+and sets missing branch upstreams to `origin/<branch>` when the remote branch
+exists.
+
+```bash
+git tk repair
+```
+
+Options:
+- `--branch <name>` only repairs the specified branch.
+- `--dry-run` shows what would change without making updates (default).
+- `--apply` applies changes (disables dry-run).
+- `--tracking` fixes origin tracking (default).
+- `--remote <name>` sets which remote to track (default `origin`).
+
 ### doctor
 
 Reports worktree health. Detects:
