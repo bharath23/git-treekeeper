@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bharath23/git-treekeeper/internal/git"
 	"github.com/bharath23/git-treekeeper/internal/treekeeper"
 	"github.com/bharath23/git-treekeeper/tests/utils"
 )
@@ -55,6 +56,15 @@ func TestCloneCommandWithRepo(t *testing.T) {
 	expectedPath := utils.RealPath(t, filepath.Join(destRoot, repoName, "worktrees", "main"))
 	if !strings.Contains(out, "Worktree path: "+expectedPath) {
 		t.Errorf("expected worktree path info, got: %q", out)
+	}
+
+	gitDir := filepath.Join(destRoot, repoName, "repo.git")
+	upstreamRef, err := git.BranchUpstream(gitDir, "main")
+	if err != nil {
+		t.Fatalf("branch upstream: %v", err)
+	}
+	if upstreamRef != "origin/main" {
+		t.Errorf("expected upstream origin/main, got %q", upstreamRef)
 	}
 }
 

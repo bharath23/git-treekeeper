@@ -43,11 +43,17 @@ func Checkout(branch string) (string, error) {
 		if err := git.AddWorktreeExisting(ctx.GitDir, worktreePath, branchName); err != nil {
 			return "", err
 		}
+		if err := ensureOriginUpstream(ctx.GitDir, branchName); err != nil {
+			return "", err
+		}
 		return worktreePath, nil
 	}
 
 	baseBranch := resolveBaseBranch(ctx.GitDir, workDir, false)
 	if err := git.AddWorktreeNew(ctx.GitDir, worktreePath, branchName, baseBranch); err != nil {
+		return "", err
+	}
+	if err := ensureOriginUpstream(ctx.GitDir, branchName); err != nil {
 		return "", err
 	}
 

@@ -24,6 +24,13 @@ func Clone(repoURL, destPath string) (string, string, error) {
 		return "", "", err
 	}
 
+	if _, err := ensureOriginFetchRefspec(gitDir, false); err != nil {
+		return "", "", err
+	}
+	if _, err := git.Run("--git-dir", gitDir, "fetch", defaultOriginRemote); err != nil {
+		return "", "", err
+	}
+
 	defaultBranch, err := git.DefaultBranch(gitDir)
 	if err != nil || defaultBranch == "" {
 		defaultBranch = "main"
@@ -40,6 +47,9 @@ func Clone(repoURL, destPath string) (string, string, error) {
 
 	worktreePath := filepath.Join(ctx.WorktreesRoot, defaultBranch)
 	if err := git.AddWorktreeExisting(gitDir, worktreePath, defaultBranch); err != nil {
+		return "", "", err
+	}
+	if err := ensureOriginUpstream(gitDir, defaultBranch); err != nil {
 		return "", "", err
 	}
 

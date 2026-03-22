@@ -38,6 +38,9 @@ func CreateBranch(branch, base string) (BranchResult, error) {
 	if err := git.AddWorktreeNew(ctx.GitDir, worktreePath, branchName, resolvedBase); err != nil {
 		return BranchResult{}, err
 	}
+	if err := ensureOriginUpstream(ctx.GitDir, branchName); err != nil {
+		return BranchResult{}, err
+	}
 
 	return BranchResult{
 		Base:         resolvedBase,
