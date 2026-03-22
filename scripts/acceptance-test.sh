@@ -192,13 +192,15 @@ output="$("$BIN" doctor 2>&1)"
 echo "$output"
 assert_contains "$output" "branch"
 assert_contains "$output" "state"
+assert_contains "$output" "tracking"
 assert_contains "$output" "dirty"
+assert_contains "$output" "origin/main"
 
 echo
 echo "== Doctor (porcelain) =="
 output="$("$BIN" doctor --porcelain 2>&1)"
 echo "$output"
-assert_contains_tabbed_path "$output" "main" "dirty"
+assert_contains "$output" "main	dirty	origin/main"
 
 echo
 echo "== Doctor (json) =="
@@ -206,6 +208,7 @@ output="$("$BIN" doctor --json 2>&1)"
 echo "$output"
 assert_contains "$output" "\"branch\":\"main\""
 assert_contains "$output" "\"state\":\"dirty\""
+assert_contains "$output" "\"tracking\":\"origin/main\""
 
 echo
 echo "== Prune stale worktree =="

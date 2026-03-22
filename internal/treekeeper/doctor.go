@@ -4,13 +4,15 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/bharath23/git-treekeeper/internal/git"
 )
 
 type DoctorInfo struct {
-	Branch string `json:"branch"`
-	State  string `json:"state"`
+	Branch   string `json:"branch"`
+	State    string `json:"state"`
+	Tracking string `json:"tracking"`
 }
 
 func Doctor() ([]DoctorInfo, error) {
@@ -49,9 +51,14 @@ func Doctor() ([]DoctorInfo, error) {
 			}
 			return nil, err
 		}
+		tracking, err := worktreeTracking(ctx.GitDir, wt.Branch)
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, DoctorInfo{
-			Branch: wt.Branch,
-			State:  state,
+			Branch:   wt.Branch,
+			State:    state,
+			Tracking: tracking,
 		})
 	}
 
@@ -66,8 +73,9 @@ func Doctor() ([]DoctorInfo, error) {
 			fullPath := filepath.Join(wtRoot, entry.Name())
 			if !trackedPaths[fullPath] {
 				results = append(results, DoctorInfo{
-					Branch: "(none) - " + entry.Name(),
-					State:  "orphaned directory",
+					Branch:   "(none) - " + entry.Name(),
+					State:    "orphaned directory",
+					Tracking: "n/a",
 				})
 			}
 		}
@@ -78,6 +86,20 @@ func Doctor() ([]DoctorInfo, error) {
 	})
 
 	return results, nil
+}
+
+func worktreeTracking(gitDir, branchName string) (string, error) {
+	upstream, err := git.BranchUpstream(gitDir, branchName)
+	if err != nil {
+		return "", err
+	}
+	if upstream == "" {
+		return "none", nil
+	}
+	if strings.Contains(upstream, "/") {
+		return upstream, nil
+	}
+	return upstream, nil
 }
 
 func worktreeState(worktreePath string) (string, error) {

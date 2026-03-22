@@ -79,11 +79,11 @@ git tk doctor
 ```
 *Output:*
 ```text
-branch      state
-------      -----
-main        clean
-feature-x   dirty
-feature-y   merge/rebase in progress
+branch      state                     tracking
+------      -----                     --------
+main        clean                     origin/main
+feature-x   dirty                     origin/feature-x
+feature-y   merge/rebase in progress  none
 ```
 
 ### Listing All Worktrees

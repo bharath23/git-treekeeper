@@ -48,7 +48,7 @@ func TestDoctorCommandDirty(t *testing.T) {
 		_ = root.Execute()
 	})
 
-	if !strings.Contains(out, "branch") || !strings.Contains(out, "state") {
+	if !strings.Contains(out, "branch") || !strings.Contains(out, "state") || !strings.Contains(out, "tracking") {
 		t.Errorf("expected header, got: %q", out)
 	}
 	if !strings.Contains(out, "main") {
@@ -81,7 +81,7 @@ func TestDoctorCommandPorcelain(t *testing.T) {
 	if len(lines) != 1 {
 		t.Fatalf("expected 1 line, got %d: %q", len(lines), out)
 	}
-	if lines[0] != "main\tclean" {
+	if lines[0] != "main\tclean\torigin/main" {
 		t.Errorf("unexpected porcelain output: %q", out)
 	}
 }
@@ -113,6 +113,9 @@ func TestDoctorCommandJSON(t *testing.T) {
 	}
 	if got[0].Branch != "main" || got[0].State != "clean" {
 		t.Errorf("unexpected json output: %+v", got[0])
+	}
+	if got[0].Tracking != "origin/main" {
+		t.Errorf("expected tracking origin/main, got: %q", got[0].Tracking)
 	}
 }
 

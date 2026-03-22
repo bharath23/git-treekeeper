@@ -55,9 +55,13 @@ func renderList(out io.Writer, format OutputFormat, response treekeeper.Response
 func renderDoctor(out io.Writer, format OutputFormat, response treekeeper.Response) error {
 	rows := make([][]string, 0, len(response.Doctor))
 	for _, result := range response.Doctor {
-		rows = append(rows, []string{result.Branch, result.State})
+		tracking := result.Tracking
+		if tracking == "" {
+			tracking = "no"
+		}
+		rows = append(rows, []string{result.Branch, result.State, tracking})
 	}
-	return renderTableOutput(out, format, []string{"branch", "state"}, rows, response.Doctor)
+	return renderTableOutput(out, format, []string{"branch", "state", "tracking"}, rows, response.Doctor)
 }
 
 func renderTableOutput(out io.Writer, format OutputFormat, headers []string, rows [][]string, jsonValue any) error {

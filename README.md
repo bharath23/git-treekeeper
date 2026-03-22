@@ -101,6 +101,7 @@ Reports worktree health. Detects:
 - `merge` or `rebase` operations in progress.
 - `stale (directory missing)`: worktrees tracked by Git but missing from disk.
 - `orphaned directory`: directories in `worktrees/` that are not tracked by Git.
+Tracking shows the upstream ref (for example `origin/main`) or `none`.
 
 ```bash
 git tk doctor
@@ -108,7 +109,7 @@ git tk doctor
 
 Options:
 - `--porcelain` prints tab-separated rows with no header.
-- `--json` prints a JSON array of `{branch,state}` objects.
+- `--json` prints a JSON array of `{branch,state,tracking}` objects.
 
 ### list
 
